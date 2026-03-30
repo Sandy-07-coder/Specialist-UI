@@ -1,0 +1,131 @@
+import React from "react";
+import { 
+  Building, 
+  Briefcase, 
+  Award, 
+  BookOpen, 
+  ClipboardCheck, 
+  GraduationCap 
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+
+export function ProfilePage() {
+  const profile = {
+    name: "Alex Johnson",
+    photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Teacher",
+    domain: "Special Educator",
+    institution: "Sunrise Inclusive Academy",
+    experience: "8 years",
+    serviceDomains: [
+      "Early Intervention",
+      "Academic Intervention",
+      "Vocational Support"
+    ],
+    assessmentMethods: [] // Intentionally empty as requested
+  };
+
+  return (
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 max-w-4xl mx-auto">
+      <header>
+        <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
+          Specialist Profile
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">
+          View your personal details, credentials, and service areas.
+        </p>
+      </header>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        {/* Left Column - Essential Info */}
+        <Card className="col-span-1 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm flex flex-col items-center p-6 text-center">
+          <div className="w-32 h-32 rounded-full border-4 border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden mb-5">
+            <img
+              src={profile.photo}
+              alt={profile.name}
+              className="w-full h-full object-cover bg-gray-50 dark:bg-gray-800"
+            />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{profile.name}</h2>
+          <Badge variant="secondary" className="mt-2 bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+            {profile.domain}
+          </Badge>
+
+          <Separator className="my-6 w-full" />
+
+          <div className="w-full space-y-4 text-left">
+            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+              <Building className="w-5 h-5 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-500">Institution</p>
+                <p className="text-sm font-medium">{profile.institution}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
+              <Briefcase className="w-5 h-5 text-gray-400" />
+              <div>
+                <p className="text-xs text-gray-500 dark:text-gray-500">Experience</p>
+                <p className="text-sm font-medium">{profile.experience}</p>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Right Column - Domains & Assessments */}
+        <div className="col-span-1 md:col-span-2 space-y-6">
+          
+          {/* Service Domains */}
+          <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+            <CardHeader className="pb-3 border-b border-gray-100 dark:border-gray-800/60">
+              <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <Award className="w-5 h-5 text-indigo-500" /> 
+                Service Domains
+              </CardTitle>
+              <CardDescription>Areas of expertise and intervention.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="flex flex-wrap gap-2">
+                {profile.serviceDomains.map((domain, idx) => (
+                  <div key={idx} className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 px-3 py-2 rounded-md border border-indigo-100 dark:border-indigo-800/50 text-sm font-medium">
+                    <BookOpen className="w-4 h-4" />
+                    {domain}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Assessment Methods */}
+          <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+            <CardHeader className="pb-3 border-b border-gray-100 dark:border-gray-800/60">
+              <CardTitle className="text-lg flex items-center gap-2 text-gray-900 dark:text-gray-100">
+                <ClipboardCheck className="w-5 h-5 text-emerald-500" /> 
+                Assessment Methods
+              </CardTitle>
+              <CardDescription>Preferred evaluation and diagnostic tools.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {profile.assessmentMethods.length > 0 ? (
+                <ul className="space-y-2">
+                  {profile.assessmentMethods.map((method, idx) => (
+                    <li key={idx} className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                      {method}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-6 text-gray-500 dark:text-gray-400 border border-dashed border-gray-200 dark:border-gray-800 rounded-lg bg-gray-50 dark:bg-gray-900/50">
+                  <GraduationCap className="w-8 h-8 mb-2 opacity-50 text-gray-400" />
+                  <p className="text-sm italic">No assessment methods currently specified.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+        </div>
+      </div>
+    </div>
+  );
+}
