@@ -63,28 +63,28 @@ export function CreateStudentPage() {
           variant="outline" 
           size="sm" 
           onClick={() => navigate(-1)}
-          className="w-fit text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="w-fit text-muted-foreground bg-card text-card-foreground border-border hover:bg-accent hover:text-accent-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
             Add New Student
           </h1>
-          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">
             Create an account and set up the profile for a new patient/student.
           </p>
         </div>
       </header>
 
       <form onSubmit={handleSubmit} className="max-w-4xl max-w-full">
-        <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
-          <CardHeader className="border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 pb-6">
-            <CardTitle className="text-lg text-gray-900 dark:text-gray-100 flex items-center gap-2">
-              <User className="w-5 h-5 text-blue-500" /> General Information
+        <Card className="border-border bg-card text-card-foreground shadow-lg shadow-gray-200/50 dark:shadow-none overflow-hidden transition-all duration-300">
+          <CardHeader className="border-b border-border bg-gray-50/50 dark:bg-gray-800/50 pb-6">
+            <CardTitle className="text-lg text-foreground flex items-center gap-2">
+              <User className="w-5 h-5 text-slate-600 dark:text-slate-400" /> General Information
             </CardTitle>
-            <CardDescription className="text-gray-500 dark:text-gray-400">
+            <CardDescription className="text-muted-foreground">
               Basic identification and medical details.
             </CardDescription>
           </CardHeader>
@@ -92,12 +92,12 @@ export function CreateStudentPage() {
             
             {/* Photo Upload Area */}
             <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-              <div className="w-24 h-24 rounded-full border-2 border-dashed border-gray-300 dark:border-gray-700 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-800/50 text-gray-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+              <div className="w-24 h-24 rounded-full border-2 border-dashed border-border flex flex-col items-center justify-center bg-muted/50 text-gray-400 cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors">
                 <Upload className="w-6 h-6 mb-1" />
                 <span className="text-[10px] font-medium text-center px-2">Upload Photo</span>
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
-                <p className="font-medium text-gray-900 dark:text-gray-100 mb-1">Student Photo (Optional)</p>
+              <div className="text-sm text-muted-foreground max-w-sm">
+                <p className="font-medium text-foreground mb-1">Student Photo (Optional)</p>
                 Upload a square image, ideally 256x256 in PNG or JPG format.
               </div>
             </div>
@@ -109,7 +109,7 @@ export function CreateStudentPage() {
                   id="firstName" name="firstName" required
                   value={formData.firstName} onChange={handleChange}
                   placeholder="e.g. Liam"
-                  className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100" 
+                  className="bg-muted border-border text-foreground" 
                 />
               </div>
               <div className="space-y-2">
@@ -118,7 +118,7 @@ export function CreateStudentPage() {
                   id="lastName" name="lastName" required
                   value={formData.lastName} onChange={handleChange}
                   placeholder="e.g. Johnson"
-                  className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100" 
+                  className="bg-muted border-border text-foreground" 
                 />
               </div>
 
@@ -129,7 +129,7 @@ export function CreateStudentPage() {
                 <Input 
                   id="dob" name="dob" type="date" required
                   value={formData.dob} onChange={handleChange}
-                  className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 [color-scheme:light] dark:[color-scheme:dark]" 
+                  className="bg-muted border-border text-foreground [color-scheme:light] dark:[color-scheme:dark]" 
                 />
               </div>
 
@@ -141,7 +141,7 @@ export function CreateStudentPage() {
                   id="diagnosis" name="diagnosis" 
                   value={formData.diagnosis} onChange={handleChange}
                   placeholder="e.g. Autism Spectrum Disorder"
-                  className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100" 
+                  className="bg-muted border-border text-foreground" 
                 />
               </div>
 
@@ -151,7 +151,7 @@ export function CreateStudentPage() {
                   value={formData.supportLevel}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, supportLevel: value }))}
                 >
-                  <SelectTrigger className="w-full bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
+                  <SelectTrigger className="w-full bg-muted border-border text-foreground">
                     <SelectValue placeholder="Select level" />
                   </SelectTrigger>
                   <SelectContent>
@@ -168,7 +168,7 @@ export function CreateStudentPage() {
                   id="assessmentTest" name="assessmentTest" 
                   value={formData.assessmentTest} onChange={handleChange}
                   placeholder="e.g. ADOS-2"
-                  className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100" 
+                  className="bg-muted border-border text-foreground" 
                 />
               </div>
 
@@ -180,7 +180,7 @@ export function CreateStudentPage() {
                   id="assignedSpecialist" name="assignedSpecialist" 
                   value={formData.assignedSpecialist} onChange={handleChange}
                   placeholder="e.g. Dr. Sarah Lee"
-                  className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100" 
+                  className="bg-muted border-border text-foreground" 
                 />
               </div>
 
@@ -190,15 +190,15 @@ export function CreateStudentPage() {
                   id="notes" name="notes" rows="3"
                   value={formData.notes} onChange={handleChange}
                   placeholder="Any preliminary observations or history..."
-                  className="flex w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
+                  className="flex w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
                 ></textarea>
               </div>
             </div>
           </CardContent>
 
           {/* Account Creation Section */}
-          <div className="border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50 p-6 md:px-6">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+          <div className="border-t border-border bg-gray-50/50 dark:bg-gray-800/50 p-6 md:px-6">
+            <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
               <Lock className="w-5 h-5 text-purple-500" /> Account Settings
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -210,7 +210,7 @@ export function CreateStudentPage() {
                   id="email" name="email" type="email" required
                   value={formData.email} onChange={handleChange}
                   placeholder="e.g. parent@email.com"
-                  className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100" 
+                  className="bg-muted border-border text-foreground" 
                 />
               </div>
               <div className="space-y-2">
@@ -219,20 +219,20 @@ export function CreateStudentPage() {
                   id="password" name="password" required
                   value={formData.password} onChange={handlePasswordChange}
                   placeholder={formData.firstName ? "Auto-generated" : "First Name + Birth Year (e.g. liam2019)"}
-                  className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100" 
+                  className="bg-muted border-border text-foreground" 
                 />
-                <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">
                   Default format: First Name + Birth Year (e.g. liam2019)
                 </p>
               </div>
             </div>
           </div>
 
-          <CardFooter className="p-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-950 flex items-center justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => navigate(-1)} className="border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+          <CardFooter className="p-6 border-t border-border bg-gray-50 dark:bg-gray-950 flex items-center justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => navigate(-1)} className="border-border text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors">
               Cancel
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button type="submit" className=" shadow-md shadow-primary/20 active:scale-[0.98] transition-all">
               Create Account
             </Button>
           </CardFooter>

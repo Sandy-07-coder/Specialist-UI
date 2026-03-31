@@ -53,15 +53,15 @@ export function StudentsPage() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <header className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
             Students
           </h1>
-          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-2">
+          <p className="text-sm sm:text-base text-muted-foreground mt-2">
             Manage and view your students' progress, diagnosis, and daily activities.
           </p>
         </div>
         <div className="shrink-0">
-          <Button onClick={() => navigate('/students/new')} className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
+          <Button onClick={() => navigate('/students/new')} className=" w-full sm:w-auto shadow-md shadow-primary/20 active:scale-[0.98] transition-all duration-200">
             <Plus className="w-4 h-4 mr-2" />
             Add Student
           </Button>
@@ -69,7 +69,7 @@ export function StudentsPage() {
       </header>
 
       {/* Filters Section */}
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm flex flex-col xl:flex-row gap-4">
+      <div className="bg-card text-card-foreground border border-border rounded-xl p-4 shadow-md shadow-gray-200/50 dark:shadow-none flex flex-col xl:flex-row gap-4 transition-all duration-300">
         {/* Search Bar */}
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -80,13 +80,13 @@ export function StudentsPage() {
             placeholder="Search students by name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-50 focus:border-transparent transition-colors text-sm"
+            className="block w-full pl-10 pr-3 py-2 border border-border rounded-lg bg-muted text-foreground placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors text-sm"
           />
         </div>
 
         {/* Filters Wrapper */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400 pl-1 w-full sm:w-auto mb-1 sm:mb-0">
+          <div className="hidden sm:flex items-center gap-2 text-sm font-medium text-muted-foreground pl-1 w-full sm:w-auto mb-1 sm:mb-0">
             <Filter className="w-4 h-4" />
             <span>Filters:</span>
           </div>
@@ -129,32 +129,32 @@ export function StudentsPage() {
         </div>
       </div>
       
-      <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-card text-card-foreground border border-border rounded-xl shadow-md shadow-gray-200/50 dark:shadow-none overflow-hidden transition-all duration-300">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
-              <tr className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
-                <th className="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Name</th>
-                <th className="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Age</th>
-                <th className="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Diagnosis</th>
-                <th className="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap hidden sm:table-cell">Last Mood</th>
-                <th className="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">Task Completion</th>
-                <th className="py-3 px-4 text-sm font-semibold text-gray-900 dark:text-gray-100 text-right whitespace-nowrap">Action</th>
+              <tr className="bg-muted/50 border-b border-border">
+                <th className="py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">Name</th>
+                <th className="py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">Age</th>
+                <th className="py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">Diagnosis</th>
+                <th className="py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap hidden sm:table-cell">Last Mood</th>
+                <th className="py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">Task Completion</th>
+                <th className="py-3 px-4 text-sm font-semibold text-foreground text-right whitespace-nowrap">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => (
-                  <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                    <td className="py-3 px-4 text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">{student.name}</td>
-                    <td className="py-3 px-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{student.age}</td>
+                  <tr key={student.id} className="hover:bg-accent hover:text-accent-foreground/50 transition-colors">
+                    <td className="py-3 px-4 text-sm font-medium text-foreground whitespace-nowrap">{student.name}</td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">{student.age}</td>
                     <td className="py-3 px-4 text-sm whitespace-nowrap">
-                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 ring-1 ring-inset ring-blue-700/10 dark:ring-blue-400/20">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-50 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400 ring-1 ring-inset ring-slate-700/10 dark:ring-slate-400/20">
                         {student.diagnosis}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell whitespace-nowrap">{student.mood}</td>
-                    <td className="py-3 px-4 text-sm text-gray-500 dark:text-gray-400 min-w-[120px]">
+                    <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell whitespace-nowrap">{student.mood}</td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground min-w-[120px]">
                       <div className="flex items-center gap-3">
                         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 max-w-[4rem]">
                           <div className="bg-gray-900 dark:bg-gray-100 h-2 rounded-full" style={{ width: student.taskCompletion }}></div>
@@ -163,7 +163,7 @@ export function StudentsPage() {
                       </div>
                     </td>
                     <td className="py-3 px-4 text-sm text-right whitespace-nowrap">
-                      <NavLink to={`/students/${student.id}`} className="text-gray-900 dark:text-gray-100 hover:underline font-medium transition-colors">
+                      <NavLink to={`/students/${student.id}`} className="text-foreground hover:underline font-medium transition-colors">
                         View
                       </NavLink>
                     </td>
@@ -171,7 +171,7 @@ export function StudentsPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="py-12 text-center text-gray-500 dark:text-gray-400 text-sm">
+                  <td colSpan="6" className="py-12 text-center text-muted-foreground text-sm">
                     No students match the selected filters.
                   </td>
                 </tr>

@@ -135,77 +135,77 @@ export function DashboardPage() {
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <header>
-        <h1 className="text-3xl font-semibold text-gray-900 dark:text-gray-100 tracking-tight">
+        <h1 className="text-3xl font-semibold text-foreground tracking-tight">
           Dashboard
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-2">
+        <p className="text-muted-foreground mt-2">
           Overview of your students and overall tasks progress.
         </p>
       </header>
 
       {/* Metrics Row */}
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+        <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Students</CardTitle>
-            <Users className="w-5 h-5 text-blue-500" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Students</CardTitle>
+            <Users className="w-5 h-5 text-primary/50" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{metrics.totalStudents}</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Active assigned patients</p>
+            <div className="text-3xl font-bold text-foreground">{metrics.totalStudents}</div>
+            <p className="text-xs text-muted-foreground mt-1">Active assigned patients</p>
           </CardContent>
         </Card>
         
-        <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+        <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">Tasks Per Week (Avg)</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tasks Per Week (Avg)</CardTitle>
             <Activity className="w-5 h-5 text-purple-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{Math.round(metrics.totalAssignedTasks / 4)}</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Assigned dynamically</p>
+            <div className="text-3xl font-bold text-foreground">{Math.round(metrics.totalAssignedTasks / 4)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Assigned dynamically</p>
           </CardContent>
         </Card>
 
-        <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+        <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">Tasks Assigned Total</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tasks Assigned Total</CardTitle>
             <CheckSquare className="w-5 h-5 text-amber-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{metrics.totalAssignedTasks}</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Across all students</p>
+            <div className="text-3xl font-bold text-foreground">{metrics.totalAssignedTasks}</div>
+            <p className="text-xs text-muted-foreground mt-1">Across all students</p>
           </CardContent>
         </Card>
 
-        <Card className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+        <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500 dark:text-gray-400">Tasks Completed</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tasks Completed</CardTitle>
             <CheckSquare className="w-5 h-5 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">{metrics.totalCompletedTasks}</div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Historically tracked</p>
+            <div className="text-3xl font-bold text-foreground">{metrics.totalCompletedTasks}</div>
+            <p className="text-xs text-muted-foreground mt-1">Historically tracked</p>
           </CardContent>
         </Card>
       </div>
 
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 xl:grid-cols-4">
         {/* Calendar Section */}
-        <Card className="lg:col-span-2 xl:col-span-3 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm flex flex-col h-full">
+        <Card className="lg:col-span-2 xl:col-span-3 border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 flex flex-col h-full">
           <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="w-full sm:w-auto flex items-start justify-between sm:block">
                 <div>
-                  <CardTitle className="text-gray-900 dark:text-gray-100 mb-1">
+                  <CardTitle className="text-foreground mb-1">
                     In-Person Visit Schedule
                   </CardTitle>
-                  <CardDescription className="text-gray-500 dark:text-gray-400">
+                  <CardDescription className="text-muted-foreground">
                     Manage your student visits and therapy appointments
                   </CardDescription>
                 </div>
                 <DialogTrigger asChild>
-                  <Button size="sm" className="h-8 w-8 p-0 bg-blue-600 hover:bg-blue-700 text-white sm:hidden mt-1 shrink-0 flex items-center justify-center">
+                  <Button size="sm" className="h-8 w-8 p-0  sm:hidden mt-1 shrink-0 flex items-center justify-center">
                     <CalendarIcon className="w-4 h-4" />
                   </Button>
                 </DialogTrigger>
@@ -215,22 +215,22 @@ export function DashboardPage() {
                   <div className="flex items-center">
                     <button 
                       onClick={prevMonth}
-                      className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                      className="p-2 text-gray-700 dark:text-gray-300 hover:bg-accent hover:text-accent-foreground rounded-full transition-colors"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
-                    <span className="font-medium text-gray-900 dark:text-gray-100 w-[120px] text-center text-sm sm:text-base">
+                    <span className="font-medium text-foreground w-[120px] text-center text-sm sm:text-base">
                       {format(currentDate, dateFormat)}
                     </span>
                     <button 
                       onClick={nextMonth}
-                      className="p-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                      className="p-2 text-gray-700 dark:text-gray-300 hover:bg-accent hover:text-accent-foreground rounded-full transition-colors"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
                   </div>
                   <DialogTrigger asChild>
-                    <Button size="sm" className="hidden sm:flex h-9 bg-blue-600 hover:bg-blue-700 text-white ml-2 gap-2">
+                    <Button size="sm" className="hidden sm:flex h-9  ml-2 gap-2">
                       <CalendarIcon className="w-4 h-4" /> 
                       <span className="hidden xl:inline">Add Event</span>
                       <span className="inline xl:hidden">Add</span>
@@ -239,7 +239,7 @@ export function DashboardPage() {
                 </div>
               </div>
             </CardHeader>
-            <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100">
+            <DialogContent className="sm:max-w-[425px] bg-card text-card-foreground border-border text-foreground">
               <DialogHeader>
                 <DialogTitle>Add New Visit or Event</DialogTitle>
               </DialogHeader>
@@ -252,7 +252,7 @@ export function DashboardPage() {
                     value={newEvent.title}
                     onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
                     placeholder="e.g. Home Visit: Ethan W."
-                    className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700" 
+                    className="bg-muted border-border" 
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -264,7 +264,7 @@ export function DashboardPage() {
                       required
                       value={newEvent.date}
                       onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
-                      className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 [color-scheme:light] dark:[color-scheme:dark]" 
+                      className="bg-muted border-border [color-scheme:light] dark:[color-scheme:dark]" 
                     />
                   </div>
                   <div className="space-y-2">
@@ -275,7 +275,7 @@ export function DashboardPage() {
                       value={newEvent.time}
                       onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
                       placeholder="e.g. 10:00 AM - 11:30 AM"
-                      className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700" 
+                      className="bg-muted border-border" 
                     />
                   </div>
                 </div>
@@ -286,7 +286,7 @@ export function DashboardPage() {
                     value={newEvent.location}
                     onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
                     placeholder="e.g. 123 Main St"
-                    className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700" 
+                    className="bg-muted border-border" 
                   />
                 </div>
                 <div className="space-y-2">
@@ -295,7 +295,7 @@ export function DashboardPage() {
                     id="type"
                     value={newEvent.type}
                     onChange={(e) => setNewEvent({...newEvent, type: e.target.value})}
-                    className="flex h-10 w-full rounded-md border text-sm px-3 py-2 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex h-10 w-full rounded-md border text-sm px-3 py-2 bg-muted border-border outline-none focus:ring-2 focus:ring-primary/50"
                   >
                     <option value="Visit">Visit</option>
                     <option value="Observation">Observation</option>
@@ -307,7 +307,7 @@ export function DashboardPage() {
                   <Button type="button" variant="outline" onClick={() => setIsEventModalOpen(false)}>
                     Cancel
                   </Button>
-                  <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <Button type="submit" className="">
                     Save Event
                   </Button>
                 </DialogFooter>
@@ -318,7 +318,7 @@ export function DashboardPage() {
             {/* Calendar Grid */}
             <div className="grid grid-cols-7 mb-2">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(dayName => (
-                <div key={dayName} className="text-center text-sm font-medium text-gray-500 dark:text-gray-400 py-2">
+                <div key={dayName} className="text-center text-sm font-medium text-muted-foreground py-2">
                   {dayName}
                 </div>
               ))}
@@ -334,12 +334,12 @@ export function DashboardPage() {
                     key={day.toString()} 
                     className={`
                       min-h-[80px] p-2 rounded-lg border flex flex-col items-center xl:items-start transition-colors
-                      ${!isCurrentMonth ? 'bg-gray-50 dark:bg-gray-900/50 text-gray-400 dark:text-gray-600 border-transparent dark:border-transparent' : 'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-100 dark:border-gray-800'}
-                      ${isTodayDay ? 'ring-2 ring-blue-500 border-transparent' : ''}
-                      hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-sm cursor-pointer
+                      ${!isCurrentMonth ? 'bg-gray-50 dark:bg-gray-900/50 text-gray-400 dark:text-gray-600 border-transparent dark:border-transparent' : 'bg-card text-card-foreground text-foreground border-border'}
+                      ${isTodayDay ? 'ring-2 ring-primary/50 border-transparent' : ''}
+                      hover:border-slate-200 dark:hover:border-slate-800 hover:shadow-md hover:shadow-gray-200/50 dark:hover:shadow-none cursor-pointer
                     `}
                   >
-                    <span className={`text-sm font-medium mb-1 ${isTodayDay ? 'bg-blue-500 text-white w-7 h-7 flex items-center justify-center rounded-full' : ''}`}>
+                    <span className={`text-sm font-medium mb-1 ${isTodayDay ? 'bg-primary/50 text-white w-7 h-7 flex items-center justify-center rounded-full' : ''}`}>
                       {format(day, 'd')}
                     </span>
                     <div className="w-full space-y-1 mt-1">
@@ -347,7 +347,7 @@ export function DashboardPage() {
                         <div 
                           key={event.id} 
                           title={event.title}
-                          className="text-[10px] xl:text-xs truncate w-full bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-1.5 py-1 rounded"
+                          className="text-[10px] xl:text-xs truncate w-full bg-primary/10 text-primary px-1.5 py-1 rounded"
                         >
                           <span className="hidden xl:inline">{event.time.split(' - ')[0]} </span>
                           <span className="font-semibold xl:font-normal">{event.title}</span>
@@ -362,27 +362,27 @@ export function DashboardPage() {
         </Card>
 
         {/* Upcoming Visits List (Agenda) */}
-        <Card className="lg:col-span-1 border-gray-200 dark:border-gray-800 border bg-white dark:bg-gray-900 shadow-sm flex flex-col h-full">
+        <Card className="lg:col-span-1 border-border border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 flex flex-col h-full">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-gray-900 dark:text-gray-100">
+            <CardTitle className="flex items-center gap-2 text-foreground">
               <CalendarIcon className="w-5 h-5 text-gray-500" />
               Upcoming Events
             </CardTitle>
-            <CardDescription className="text-gray-500 dark:text-gray-400">Next 30 days schedule</CardDescription>
+            <CardDescription className="text-muted-foreground">Next 30 days schedule</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 overflow-auto space-y-4">
             {events.length > 0 ? (
               events.sort((a,b) => a.date - b.date).map(event => (
-                <div key={event.id} className="p-3 border border-gray-100 dark:border-gray-800 rounded-lg group hover:border-blue-100 dark:hover:border-blue-900 transition-colors">
+                <div key={event.id} className="p-3 border border-border rounded-lg group hover:border-slate-100 dark:hover:border-slate-900 transition-colors">
                   <div className="flex items-start justify-between">
-                    <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100 line-clamp-1">{event.title}</h4>
+                    <h4 className="font-semibold text-sm text-foreground line-clamp-1">{event.title}</h4>
                   </div>
                   <div className="mt-2 space-y-1.5">
-                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 gap-2">
+                    <div className="flex items-center text-xs text-muted-foreground gap-2">
                       <Clock className="w-3.5 h-3.5" />
                       {format(event.date, 'MMM d')} • {event.time}
                     </div>
-                    <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 gap-2">
+                    <div className="flex items-center text-xs text-muted-foreground gap-2">
                       <MapPin className="w-3.5 h-3.5 shrink-0" />
                       <span className="truncate">{event.location}</span>
                     </div>
@@ -390,7 +390,7 @@ export function DashboardPage() {
                 </div>
               ))
             ) : (
-               <div className="text-center py-8 text-sm text-gray-500 dark:text-gray-400">
+               <div className="text-center py-8 text-sm text-muted-foreground">
                  No upcoming events this month.
                </div>
             )}

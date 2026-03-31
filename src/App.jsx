@@ -8,6 +8,7 @@ import { StudentDetailsPage } from "@/pages/StudentDetailsPage";
 import { StudentTasksPage } from "@/pages/StudentTasksPage";
 import TasksPage from "@/pages/TasksPage";
 import { ProfilePage } from "@/pages/ProfilePage";
+import { ThemeProvider } from "@/components/theme-provider";
 import "./App.css";
 
 // --- Dummy Pages ---
@@ -38,21 +39,23 @@ const PagePlaceholder = ({ title }) => (
 
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<DashboardLayout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="students" element={<StudentsPage />} />
-          <Route path="students/new" element={<CreateStudentPage />} />
-          <Route path="students/:id" element={<StudentDetailsPage />} />
-          <Route path="students/:id/tasks" element={<StudentTasksPage />} />
-          <Route path="tasks" element={<TasksPage />} />
-          <Route path="profile" element={<ProfilePage />} />
-          <Route path="assessment" element={<PagePlaceholder title="Assessment" />} />
-          <Route path="settings" element={<PagePlaceholder title="Settings" />} />
-        </Route>
-      </Routes>
-    </Router>
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <Router>
+        <Routes>
+          <Route path="/" element={<DashboardLayout />}>
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="students" element={<StudentsPage />} />
+            <Route path="students/new" element={<CreateStudentPage />} />
+            <Route path="students/:id" element={<StudentDetailsPage />} />
+            <Route path="students/:id/tasks" element={<StudentTasksPage />} />
+            <Route path="tasks" element={<TasksPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="assessment" element={<PagePlaceholder title="Assessment" />} />
+            <Route path="settings" element={<PagePlaceholder title="Settings" />} />
+          </Route>
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }

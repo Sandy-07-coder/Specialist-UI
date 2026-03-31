@@ -40,7 +40,7 @@ const TaskItem = ({ task }) => {
   const isCompleted = task.status === "Completed";
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700/50 rounded-md p-3 bg-gray-50 dark:bg-gray-800/40 hover:bg-gray-100 dark:hover:bg-gray-800/80 transition-colors">
+    <div className="border border-border/50 rounded-md p-3 bg-muted/40 hover:bg-accent hover:text-accent-foreground/80 transition-colors">
       <div 
         className="flex items-center justify-between cursor-pointer" 
         onClick={() => setExpanded(!expanded)}
@@ -51,14 +51,14 @@ const TaskItem = ({ task }) => {
           ) : (
             <Clock className="h-5 w-5 text-orange-500" />
           )}
-          <span className={`font-medium text-sm ${isCompleted ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-gray-200'}`}>
+          <span className={`font-medium text-sm ${isCompleted ? 'text-muted-foreground line-through' : 'text-gray-900 dark:text-gray-200'}`}>
             {task.title}
           </span>
           <Badge variant={isCompleted ? "outline" : "default"} className={`ml-2 text-xs font-normal border-transparent ${isCompleted ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'}`}>
             {task.status || "Pending"}
           </Badge>
         </div>
-        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-700 text-muted-foreground hover:text-gray-900 dark:hover:text-gray-100">
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </Button>
       </div>
@@ -89,13 +89,13 @@ export function StudentDetailsPage() {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-in fade-in zoom-in duration-500">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Student Not Found</h2>
-        <p className="text-gray-500 dark:text-gray-400 mt-2 mb-6">
+        <h2 className="text-2xl font-bold text-foreground">Student Not Found</h2>
+        <p className="text-muted-foreground mt-2 mb-6">
           The student you are looking for does not exist or has been removed.
         </p>
         <NavLink
           to="/students"
-          className="inline-flex items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white shadow hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50 dark:bg-gray-50 dark:text-gray-900 dark:hover:bg-gray-50/90 dark:focus-visible:ring-gray-300"
+          className="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 text-sm font-medium shadow"
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Go Back to Students
         </NavLink>
@@ -140,12 +140,12 @@ export function StudentDetailsPage() {
         <div className="flex items-center gap-4">
           <NavLink
             to="/students"
-            className="p-2 border border-gray-200 dark:border-gray-800 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition text-gray-600 dark:text-gray-400"
+            className="p-2 border border-border rounded-full hover:bg-accent hover:text-accent-foreground transition text-gray-600 dark:text-gray-400"
           >
             <ArrowLeft className="w-5 h-5" />
           </NavLink>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-gray-100 tracking-tight flex items-center gap-3">
+            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight flex items-center gap-3">
               Student Details
             </h1>
           </div>
@@ -155,18 +155,18 @@ export function StudentDetailsPage() {
       {/* Top Section: Profile info */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Col: Main Portrait & Basic Info */}
-        <Card className="col-span-1 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 shadow-sm">
+        <Card className="col-span-1 border-border bg-card text-card-foreground/50 shadow-sm">
           <CardContent className="pt-6 flex flex-col items-center text-center">
             <img 
               src={student.image} 
               alt={student.name} 
-              className="w-32 h-32 rounded-full object-cover border-4 border-gray-100 dark:border-gray-800 shadow-sm"
+              className="w-32 h-32 rounded-full object-cover border-4 border-border shadow-sm"
             />
-            <h2 className="mt-4 text-2xl font-bold text-gray-900 dark:text-gray-100">{student.name}</h2>
-            <p className="text-gray-500 dark:text-gray-400 font-medium">Age: {student.age} yrs</p>
+            <h2 className="mt-4 text-2xl font-bold text-foreground">{student.name}</h2>
+            <p className="text-muted-foreground font-medium">Age: {student.age} yrs</p>
             
             <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <Badge variant="secondary" className="bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 font-medium tracking-wide">
+              <Badge variant="secondary" className="bg-primary/10 text-primary font-medium tracking-wide">
                 {student.diagnosis}
               </Badge>
               <Badge variant="outline" className={`${student.support_level === 'High' ? 'border-red-200 text-red-700 bg-red-50 dark:border-red-900 dark:text-red-400 dark:bg-red-500/10' : student.support_level === 'Medium' ? 'border-orange-200 text-orange-700 bg-orange-50 dark:border-orange-900 dark:text-orange-400 dark:bg-orange-500/10' : 'border-green-200 text-green-700 bg-green-50 dark:border-green-900 dark:text-green-400 dark:bg-green-500/10'}`}>
@@ -178,12 +178,12 @@ export function StudentDetailsPage() {
 
             <div className="w-full text-left space-y-4">
               <div>
-                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-2">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
                   <User className="w-4 h-4 text-gray-500" /> Assigned Specialists
                 </h4>
                 <div className="flex flex-col gap-2">
                   {student.assigned_specialists.map(sp => (
-                    <div key={sp} className="text-sm text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-800/80 p-2 rounded-md border border-gray-200 dark:border-gray-700/50">
+                    <div key={sp} className="text-sm text-foreground bg-gray-100 dark:bg-gray-800/80 p-2 rounded-md border border-border/50">
                       {sp}
                     </div>
                   ))}
@@ -191,7 +191,7 @@ export function StudentDetailsPage() {
               </div>
               
               <div>
-                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-2">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
                   <CheckCircle2 className="w-4 h-4 text-gray-500" /> Overall Completion
                 </h4>
                 <div className="flex items-center gap-3">
@@ -201,7 +201,7 @@ export function StudentDetailsPage() {
                       style={{ width: student.taskCompletion }}
                     />
                   </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{student.taskCompletion}</span>
+                  <span className="text-sm font-medium text-foreground">{student.taskCompletion}</span>
                 </div>
               </div>
             </div>
@@ -209,7 +209,7 @@ export function StudentDetailsPage() {
         </Card>
 
         {/* Right Col: Notes and Specific info */}
-        <Card className="col-span-1 lg:col-span-2 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 shadow-sm flex flex-col justify-center">
+        <Card className="col-span-1 lg:col-span-2 border-border bg-card text-card-foreground/50 shadow-sm flex flex-col justify-center">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-gray-500 outline-none" /> Specialist Notes
@@ -227,8 +227,8 @@ export function StudentDetailsPage() {
       </div>
 
       {/* Middle Section: Assigned Tasks */}
-      <Card id="assigned-tasks" className="border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 shadow-sm scroll-mt-6">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-gray-100 dark:border-gray-800">
+      <Card id="assigned-tasks" className="border-border bg-card text-card-foreground/50 shadow-sm scroll-mt-6">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border">
           <div>
             <CardTitle className="flex items-center gap-2">
               <Clock className="w-5 h-5 text-gray-500" /> Assigned Tasks
@@ -247,7 +247,7 @@ export function StudentDetailsPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400 italic">
+            <div className="text-center py-8 text-muted-foreground italic">
               No tasks are currently assigned to this student.
             </div>
           )}
@@ -258,7 +258,7 @@ export function StudentDetailsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         
         {/* Task History (Bar Chart) */}
-        <Card className="flex flex-col shadow-sm border-gray-200 dark:border-gray-800">
+        <Card className="flex flex-col shadow-sm border-border">
           <CardHeader className="items-center pb-2">
             <CardTitle className="text-lg">Task History (7 Days)</CardTitle>
             <CardDescription>Daily task completion volume</CardDescription>
@@ -285,7 +285,7 @@ export function StudentDetailsPage() {
         </Card>
 
         {/* Mood History (Pie Chart) */}
-        <Card className="flex flex-col shadow-sm border-gray-200 dark:border-gray-800">
+        <Card className="flex flex-col shadow-sm border-border">
           <CardHeader className="items-center pb-0">
             <CardTitle className="text-lg">Mood History</CardTitle>
             <CardDescription>Distribution of states over time</CardDescription>
@@ -340,7 +340,7 @@ export function StudentDetailsPage() {
         </Card>
 
         {/* Progress Tracker (Radar Chart) */}
-        <Card className="flex flex-col shadow-sm border-gray-200 dark:border-gray-800">
+        <Card className="flex flex-col shadow-sm border-border">
           <CardHeader className="items-center pb-4">
             <CardTitle className="text-lg">Progress Tracker</CardTitle>
             <CardDescription>Overall spectrum metrics</CardDescription>
