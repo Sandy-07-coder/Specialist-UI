@@ -7,8 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export function StudentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [ageFilter, setAgeFilter] = useState("All");
   const [diagnosisFilter, setDiagnosisFilter] = useState("All");
+  const [moodFilter, setMoodFilter] = useState("All");
   const [completionFilter, setCompletionFilter] = useState("All");
   const navigate = useNavigate();
 
@@ -16,12 +16,12 @@ export function StudentsPage() {
     return studentsData.filter(student => {
       // Name Search Filter
       const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      // Age Filter
-      let matchesAge = true;
-      if (ageFilter === "< 9") matchesAge = student.age < 9;
-      else if (ageFilter === "9-11") matchesAge = student.age >= 9 && student.age <= 11;
-      else if (ageFilter === "> 11") matchesAge = student.age > 11;
+
+      // Mood Trend Filter
+      let matchesMood = true;
+      if (moodFilter !== "All") {
+        matchesMood = student.mood === moodFilter;
+      }
 
       // Diagnosis Filter
       let matchesDiagnosis = true;
@@ -36,9 +36,9 @@ export function StudentsPage() {
       else if (completionFilter === "50% - 80%") matchesCompletion = completionNum >= 50 && completionNum <= 80;
       else if (completionFilter === "> 80%") matchesCompletion = completionNum > 80;
 
-      return matchesSearch && matchesAge && matchesDiagnosis && matchesCompletion;
+      return matchesSearch && matchesMood && matchesDiagnosis && matchesCompletion;
     });
-  }, [searchTerm, ageFilter, diagnosisFilter, completionFilter]);
+  }, [searchTerm, moodFilter, diagnosisFilter, completionFilter]);
 
   const uniqueDiagnoses = useMemo(() => {
     const diags = new Set();
@@ -49,6 +49,14 @@ export function StudentsPage() {
     return Array.from(diags).sort();
   }, []);
 
+  const uniqueMoods = useMemo(() => {
+    const moods = new Set();
+    studentsData.forEach(s => {
+      if(s.mood) moods.add(s.mood);
+    });
+    return Array.from(moods).sort();
+  }, []);
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
       <header className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
@@ -57,7 +65,7 @@ export function StudentsPage() {
             Students
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-2">
-            Manage and view your students' progress, diagnosis, and daily activities.
+            Mapping the unique journeys of your classroom community
           </p>
         </div>
         <div className="shrink-0">
@@ -91,18 +99,6 @@ export function StudentsPage() {
             <span>Filters:</span>
           </div>
 
-          <Select value={ageFilter} onValueChange={setAgeFilter}>
-            <SelectTrigger className="w-full sm:w-[130px]">
-              <SelectValue placeholder="Age: All" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="All">Age: All</SelectItem>
-              <SelectItem value="< 9">Under 9</SelectItem>
-              <SelectItem value="9-11">9 to 11 yrs</SelectItem>
-              <SelectItem value="> 11">Over 11</SelectItem>
-            </SelectContent>
-          </Select>
-
           <Select value={diagnosisFilter} onValueChange={setDiagnosisFilter}>
             <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Diagnosis: All" />
@@ -111,6 +107,18 @@ export function StudentsPage() {
               <SelectItem value="All">Diagnosis: All</SelectItem>
               {uniqueDiagnoses.map(d => (
                 <SelectItem key={d} value={d}>{d}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={moodFilter} onValueChange={setMoodFilter}>
+            <SelectTrigger className="w-full sm:w-[130px]">
+              <SelectValue placeholder="Mood: All" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="All">Mood: All</SelectItem>
+              {uniqueMoods.map(m => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
               ))}
             </SelectContent>
           </Select>

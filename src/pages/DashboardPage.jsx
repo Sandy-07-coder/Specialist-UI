@@ -139,13 +139,13 @@ export function DashboardPage() {
           Dashboard
         </h1>
         <p className="text-muted-foreground mt-2">
-          Overview of your students and overall tasks progress.
+          Monitoring growth and managing milestones for your student community
         </p>
       </header>
 
       {/* Metrics Row */}
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300">
+        <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Students</CardTitle>
             <Users className="w-5 h-5 text-primary/50" />
@@ -156,7 +156,7 @@ export function DashboardPage() {
           </CardContent>
         </Card>
         
-        <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300">
+        <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Tasks Per Week (Avg)</CardTitle>
             <Activity className="w-5 h-5 text-purple-500" />
@@ -167,7 +167,7 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300">
+        <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Tasks Assigned Total</CardTitle>
             <CheckSquare className="w-5 h-5 text-amber-500" />
@@ -178,7 +178,7 @@ export function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300">
+        <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Tasks Completed</CardTitle>
             <CheckSquare className="w-5 h-5 text-green-500" />
@@ -192,13 +192,13 @@ export function DashboardPage() {
 
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-3 xl:grid-cols-4">
         {/* Calendar Section */}
-        <Card className="lg:col-span-2 xl:col-span-3 border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 flex flex-col h-full">
+        <Card className="lg:col-span-2 xl:col-span-3 border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg flex flex-col h-full">
           <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
             <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="w-full sm:w-auto flex items-start justify-between sm:block">
                 <div>
                   <CardTitle className="text-foreground mb-1">
-                    In-Person Visit Schedule
+                    Session Planner
                   </CardTitle>
                   <CardDescription className="text-muted-foreground">
                     Manage your student visits and therapy appointments
@@ -362,17 +362,17 @@ export function DashboardPage() {
         </Card>
 
         {/* Upcoming Visits List (Agenda) */}
-        <Card className="lg:col-span-1 border-border border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 flex flex-col h-full">
+        <Card className="lg:col-span-1 border-border border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg flex flex-col h-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
               <CalendarIcon className="w-5 h-5 text-gray-500" />
               Upcoming Events
             </CardTitle>
-            <CardDescription className="text-muted-foreground">Next 30 days schedule</CardDescription>
+            <CardDescription className="text-muted-foreground">Today's schedule</CardDescription>
           </CardHeader>
           <CardContent className="flex-1 overflow-auto space-y-4">
-            {events.length > 0 ? (
-              events.sort((a,b) => a.date - b.date).map(event => (
+            {eventsToday.length > 0 ? (
+              eventsToday.sort((a,b) => a.date - b.date).map(event => (
                 <div key={event.id} className="p-3 border border-border rounded-lg group hover:border-slate-100 dark:hover:border-slate-900 transition-colors">
                   <div className="flex items-start justify-between">
                     <h4 className="font-semibold text-sm text-foreground line-clamp-1">{event.title}</h4>
@@ -391,7 +391,7 @@ export function DashboardPage() {
               ))
             ) : (
                <div className="text-center py-8 text-sm text-muted-foreground">
-                 No upcoming events this month.
+                 No upcoming events today.
                </div>
             )}
           </CardContent>

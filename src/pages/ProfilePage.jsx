@@ -30,10 +30,10 @@ export function ProfilePage() {
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 max-w-4xl mx-auto">
       <header>
         <h1 className="text-3xl font-semibold text-foreground tracking-tight">
-          Specialist Profile
+          Specialist Portfolio
         </h1>
         <p className="text-muted-foreground mt-2">
-          View your personal details, credentials, and service areas.
+          Your professional snapshot
         </p>
       </header>
 

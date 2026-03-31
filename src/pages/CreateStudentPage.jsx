@@ -63,17 +63,17 @@ export function CreateStudentPage() {
           variant="outline" 
           size="sm" 
           onClick={() => navigate(-1)}
-          className="w-fit text-muted-foreground bg-card text-card-foreground border-border hover:bg-accent hover:text-accent-foreground"
+          className="w-fit bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
         <div>
           <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
-            Add New Student
+            Add Student
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-1">
-            Create an account and set up the profile for a new patient/student.
+            New potential? Let's get started.
           </p>
         </div>
       </header>

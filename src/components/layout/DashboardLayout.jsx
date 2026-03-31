@@ -14,14 +14,21 @@ export function DashboardLayout() {
       
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between p-4 bg-card/80 backdrop-blur-md border-b border-border shrink-0 shadow-sm z-30">
-          <h1 className="font-semibold text-foreground">Specialist Dashboard</h1>
-          <button 
-            onClick={() => setIsSidebarOpen(true)}
-            className="p-2 -mr-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
+        <header className="md:hidden flex items-center justify-between p-3 px-4 bg-card/80 backdrop-blur-md border-b border-border shrink-0 shadow-sm z-30">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-1.5 -ml-1.5 rounded-md text-gray-500 hover:bg-accent hover:text-foreground transition-colors"
+              aria-label="Toggle Menu"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+            <h1 className="font-semibold text-foreground tracking-tight flex items-center gap-2">
+              <span className="font-extrabold bg-gradient-to-r from-primary to-indigo-400 bg-clip-text text-transparent">RePaIR</span>
+            </h1>
+          </div>
+          {/* Spacer to prevent header content from overlapping with the absolutely positioned ThemeToggle button */}
+          <div className="w-10"></div>
         </header>
 
         {/* Scrollable Content */}
