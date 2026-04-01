@@ -31,7 +31,7 @@ const TaskItem = ({ task }) => {
   const dateStr = task.assignedDate || "Mar 20, 2026";
 
   return (
-    <div className="border border-border/50 rounded-md p-4 bg-white dark:bg-gray-800/40 hover:bg-accent hover:text-accent-foreground/80 transition-colors shadow-sm mb-3">
+    <div className="border border-border/50 rounded-md p-4 bg-background/40 hover:bg-accent hover:text-accent-foreground/80 transition-colors shadow-sm mb-3">
       <div 
         className="flex items-start sm:items-center justify-between cursor-pointer flex-col sm:flex-row gap-2" 
         onClick={() => setExpanded(!expanded)}
@@ -43,7 +43,7 @@ const TaskItem = ({ task }) => {
             <Clock className="h-5 w-5 text-orange-500" />
           )}
           <div>
-            <div className={`font-medium text-base ${isCompleted ? 'text-muted-foreground line-through' : 'text-gray-900 dark:text-gray-200'}`}>
+            <div className={`font-medium text-base ${isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
               {task.title}
             </div>
             <div className="text-xs text-muted-foreground mt-1">Assigned: {dateStr}</div>
@@ -54,7 +54,7 @@ const TaskItem = ({ task }) => {
           <Badge variant={isCompleted ? "outline" : "default"} className={`text-xs font-normal border-transparent ${isCompleted ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'}`}>
             {task.status || "Pending"}
           </Badge>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-gray-200 dark:hover:bg-gray-700 text-muted-foreground hover:text-gray-900 dark:hover:text-gray-100">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-accent text-muted-foreground hover:text-accent-foreground">
             {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         </div>
@@ -134,7 +134,7 @@ export function StudentTasksPage() {
         <div className="flex items-center gap-4">
           <NavLink
             to="/tasks"
-            className="p-2 border border-border rounded-full hover:bg-accent hover:text-accent-foreground transition text-gray-600 dark:text-gray-400"
+            className="p-2 border border-border rounded-full hover:bg-accent hover:text-accent-foreground transition text-muted-foreground"
           >
             <ArrowLeft className="w-5 h-5" />
           </NavLink>
@@ -161,7 +161,7 @@ export function StudentTasksPage() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right text-gray-700 dark:text-gray-300">
+                <Label htmlFor="title" className="text-right text-foreground">
                   Title
                 </Label>
                 <Input
@@ -169,11 +169,11 @@ export function StudentTasksPage() {
                   placeholder="e.g., Morning Routine"
                   value={newTaskTitle}
                   onChange={(e) => setNewTaskTitle(e.target.value)}
-                  className="col-span-3 border-border bg-white dark:bg-gray-800 text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  className="col-span-3 border-border bg-background text-foreground placeholder:text-muted-foreground"
                 />
               </div>
               <div className="grid grid-cols-4 items-start gap-4">
-                <Label htmlFor="description" className="text-right mt-2 text-gray-700 dark:text-gray-300">
+                <Label htmlFor="description" className="text-right mt-2 text-foreground">
                   Description
                 </Label>
                 <textarea
@@ -181,7 +181,7 @@ export function StudentTasksPage() {
                   placeholder="Task details and instructions..."
                   value={newTaskDesc}
                   onChange={(e) => setNewTaskDesc(e.target.value)}
-                  className="col-span-3 flex min-h-[80px] w-full rounded-md border border-border bg-white dark:bg-gray-800 px-3 py-2 text-sm ring-offset-white dark:ring-offset-gray-900 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="col-span-3 flex min-h-[80px] w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-white dark:ring-offset-gray-900 placeholder:text-muted-foreground text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
             </div>
@@ -197,15 +197,15 @@ export function StudentTasksPage() {
       <Card className="border-border bg-card text-card-foreground/50 shadow-sm">
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-border gap-4">
           <div className="flex items-center gap-2">
-             <Filter className="w-4 h-4 text-gray-500" />
-             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter Status:</span>
+             <Filter className="w-4 h-4 text-muted-foreground" />
+             <span className="text-sm font-medium text-foreground">Filter Status:</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {["All", "In Progress", "Completed", "Pending"].map((f) => (
               <Badge 
                 key={f}
                 variant={filter === f ? "default" : "outline"}
-                className={`cursor-pointer ${filter === f ? '' : 'hover:bg-accent hover:text-accent-foreground text-gray-600 dark:text-gray-400 border-border'}`}
+                className={`cursor-pointer ${filter === f ? '' : 'hover:bg-accent hover:text-accent-foreground text-muted-foreground border-border'}`}
                 onClick={() => setFilter(f)}
               >
                 {f}
@@ -221,10 +221,10 @@ export function StudentTasksPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 border border-dashed border-border rounded-lg bg-gray-50 dark:bg-gray-900/30">
-              <Clock className="mx-auto h-8 w-8 text-gray-400 mb-3" />
+            <div className="text-center py-12 border border-dashed border-border rounded-lg bg-muted/30">
+              <Clock className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
               <p className="text-muted-foreground font-medium">No tasks found for "{filter}" status</p>
-              <Button variant="link" className="mt-2 text-slate-600 dark:text-slate-400" onClick={() => setFilter("All")}>
+              <Button variant="link" className="mt-2 text-muted-foreground" onClick={() => setFilter("All")}>
                 Clear filters
               </Button>
             </div>

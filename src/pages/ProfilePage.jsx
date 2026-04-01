@@ -55,17 +55,17 @@ export function ProfilePage() {
           <Separator className="my-6 w-full" />
 
           <div className="w-full space-y-4 text-left">
-            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-              <Building className="w-5 h-5 text-gray-400" />
+            <div className="flex items-center gap-3 text-foreground">
+              <Building className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-500">Institution</p>
+                <p className="text-xs text-muted-foreground">Institution</p>
                 <p className="text-sm font-medium">{profile.institution}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-              <Briefcase className="w-5 h-5 text-gray-400" />
+            <div className="flex items-center gap-3 text-foreground">
+              <Briefcase className="w-5 h-5 text-muted-foreground" />
               <div>
-                <p className="text-xs text-gray-500 dark:text-gray-500">Experience</p>
+                <p className="text-xs text-muted-foreground">Experience</p>
                 <p className="text-sm font-medium">{profile.experience}</p>
               </div>
             </div>
@@ -109,15 +109,15 @@ export function ProfilePage() {
               {profile.assessmentMethods.length > 0 ? (
                 <ul className="space-y-2">
                   {profile.assessmentMethods.map((method, idx) => (
-                    <li key={idx} className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                    <li key={idx} className="text-sm text-foreground flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                       {method}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <div className="flex flex-col items-center justify-center py-6 text-muted-foreground border border-dashed border-border rounded-lg bg-gray-50 dark:bg-gray-900/50">
-                  <GraduationCap className="w-8 h-8 mb-2 opacity-50 text-gray-400" />
+                <div className="flex flex-col items-center justify-center py-6 text-muted-foreground border border-dashed border-border rounded-lg bg-muted/50">
+                  <GraduationCap className="w-8 h-8 mb-2 opacity-50 text-muted-foreground" />
                   <p className="text-sm italic">No assessment methods currently specified.</p>
                 </div>
               )}

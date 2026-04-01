@@ -80,9 +80,9 @@ export function CreateStudentPage() {
 
       <form onSubmit={handleSubmit} className="max-w-4xl max-w-full">
         <Card className="border-border bg-card text-card-foreground shadow-lg shadow-gray-200/50 dark:shadow-none overflow-hidden transition-all duration-300">
-          <CardHeader className="border-b border-border bg-gray-50/50 dark:bg-gray-800/50 pb-6">
+          <CardHeader className="border-b border-border bg-muted/50 pb-6">
             <CardTitle className="text-lg text-foreground flex items-center gap-2">
-              <User className="w-5 h-5 text-slate-600 dark:text-slate-400" /> General Information
+              <User className="w-5 h-5 text-muted-foreground" /> General Information
             </CardTitle>
             <CardDescription className="text-muted-foreground">
               Basic identification and medical details.
@@ -92,7 +92,7 @@ export function CreateStudentPage() {
             
             {/* Photo Upload Area */}
             <div className="flex flex-col sm:flex-row gap-6 items-start sm:items-center">
-              <div className="w-24 h-24 rounded-full border-2 border-dashed border-border flex flex-col items-center justify-center bg-muted/50 text-gray-400 cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors">
+              <div className="w-24 h-24 rounded-full border-2 border-dashed border-border flex flex-col items-center justify-center bg-muted/50 text-muted-foreground cursor-pointer hover:bg-accent hover:text-accent-foreground transition-colors">
                 <Upload className="w-6 h-6 mb-1" />
                 <span className="text-[10px] font-medium text-center px-2">Upload Photo</span>
               </div>
@@ -104,7 +104,7 @@ export function CreateStudentPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="firstName" className="text-gray-700 dark:text-gray-300">First Name <span className="text-red-500">*</span></Label>
+                <Label htmlFor="firstName" className="text-foreground">First Name <span className="text-red-500">*</span></Label>
                 <Input 
                   id="firstName" name="firstName" required
                   value={formData.firstName} onChange={handleChange}
@@ -113,7 +113,7 @@ export function CreateStudentPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-gray-700 dark:text-gray-300">Last Name <span className="text-red-500">*</span></Label>
+                <Label htmlFor="lastName" className="text-foreground">Last Name <span className="text-red-500">*</span></Label>
                 <Input 
                   id="lastName" name="lastName" required
                   value={formData.lastName} onChange={handleChange}
@@ -123,8 +123,8 @@ export function CreateStudentPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="dob" className="text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-gray-400" /> Date of Birth <span className="text-red-500">*</span>
+                <Label htmlFor="dob" className="text-foreground flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" /> Date of Birth <span className="text-red-500">*</span>
                 </Label>
                 <Input 
                   id="dob" name="dob" type="date" required
@@ -134,8 +134,8 @@ export function CreateStudentPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="diagnosis" className="text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-gray-400" /> Primary Diagnosis
+                <Label htmlFor="diagnosis" className="text-foreground flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-muted-foreground" /> Primary Diagnosis
                 </Label>
                 <Input 
                   id="diagnosis" name="diagnosis" 
@@ -146,7 +146,7 @@ export function CreateStudentPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="supportLevel" className="text-gray-700 dark:text-gray-300">Support Level</Label>
+                <Label htmlFor="supportLevel" className="text-foreground">Support Level</Label>
                 <Select
                   value={formData.supportLevel}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, supportLevel: value }))}
@@ -163,7 +163,7 @@ export function CreateStudentPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="assessmentTest" className="text-gray-700 dark:text-gray-300">Assessment Test</Label>
+                <Label htmlFor="assessmentTest" className="text-foreground">Assessment Test</Label>
                 <Input 
                   id="assessmentTest" name="assessmentTest" 
                   value={formData.assessmentTest} onChange={handleChange}
@@ -173,8 +173,8 @@ export function CreateStudentPage() {
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="assignedSpecialist" className="text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                  <Building className="w-4 h-4 text-gray-400" /> Assigned Specialist
+                <Label htmlFor="assignedSpecialist" className="text-foreground flex items-center gap-2">
+                  <Building className="w-4 h-4 text-muted-foreground" /> Assigned Specialist
                 </Label>
                 <Input 
                   id="assignedSpecialist" name="assignedSpecialist" 
@@ -185,26 +185,26 @@ export function CreateStudentPage() {
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="notes" className="text-gray-700 dark:text-gray-300">Initial Notes</Label>
+                <Label htmlFor="notes" className="text-foreground">Initial Notes</Label>
                 <textarea 
                   id="notes" name="notes" rows="3"
                   value={formData.notes} onChange={handleChange}
                   placeholder="Any preliminary observations or history..."
-                  className="flex w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
+                  className="flex w-full rounded-md border border-gray-200 bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
                 ></textarea>
               </div>
             </div>
           </CardContent>
 
           {/* Account Creation Section */}
-          <div className="border-t border-border bg-gray-50/50 dark:bg-gray-800/50 p-6 md:px-6">
+          <div className="border-t border-border bg-muted/50 p-6 md:px-6">
             <h3 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
               <Lock className="w-5 h-5 text-purple-500" /> Account Settings
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-gray-400" /> Parent / Guardian Email <span className="text-red-500">*</span>
+                <Label htmlFor="email" className="text-foreground flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-muted-foreground" /> Parent / Guardian Email <span className="text-red-500">*</span>
                 </Label>
                 <Input 
                   id="email" name="email" type="email" required
@@ -214,7 +214,7 @@ export function CreateStudentPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-700 dark:text-gray-300">Initial Password</Label>
+                <Label htmlFor="password" className="text-foreground">Initial Password</Label>
                 <Input 
                   id="password" name="password" required
                   value={formData.password} onChange={handlePasswordChange}
@@ -228,8 +228,8 @@ export function CreateStudentPage() {
             </div>
           </div>
 
-          <CardFooter className="p-6 border-t border-border bg-gray-50 dark:bg-gray-950 flex items-center justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => navigate(-1)} className="border-border text-gray-700 dark:text-gray-300 hover:bg-slate-50 dark:hover:bg-gray-800 transition-colors">
+          <CardFooter className="p-6 border-t border-border bg-muted flex items-center justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => navigate(-1)} className="border-border text-foreground hover:bg-accent transition-colors">
               Cancel
             </Button>
             <Button type="submit" className=" shadow-md shadow-primary/20 active:scale-[0.98] transition-all">

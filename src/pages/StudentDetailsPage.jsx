@@ -20,10 +20,6 @@ import {
   Pie,
   PieChart,
   Label,
-  PolarAngleAxis,
-  PolarGrid,
-  Radar,
-  RadarChart,
   XAxis,
 } from "recharts";
 
@@ -51,19 +47,19 @@ const TaskItem = ({ task }) => {
           ) : (
             <Clock className="h-5 w-5 text-orange-500" />
           )}
-          <span className={`font-medium text-sm ${isCompleted ? 'text-muted-foreground line-through' : 'text-gray-900 dark:text-gray-200'}`}>
+          <span className={`font-medium text-sm ${isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
             {task.title}
           </span>
           <Badge variant={isCompleted ? "outline" : "default"} className={`ml-2 text-xs font-normal border-transparent ${isCompleted ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'}`}>
             {task.status || "Pending"}
           </Badge>
         </div>
-        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-700 text-muted-foreground hover:text-gray-900 dark:hover:text-gray-100">
+        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-accent text-muted-foreground hover:text-accent-foreground">
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </Button>
       </div>
       {expanded && (
-        <div className="mt-3 ml-8 text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap pl-3 border-l-2 border-gray-300 dark:border-gray-600">
+        <div className="mt-3 ml-8 text-sm text-muted-foreground whitespace-pre-wrap pl-3 border-l-2 border-gray-300 dark:border-gray-600">
           {task.description}
         </div>
       )}
@@ -126,21 +122,13 @@ export function StudentDetailsPage() {
     fill: `var(--color-${m.mood})`
   }));
 
-  // --- Progress Radar Config ---
-  const progressChartConfig = {
-    score: {
-      label: "Score",
-      color: "hsl(var(--chart-1))",
-    },
-  };
-
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-12 w-full max-w-7xl mx-auto">
       <header className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
         <div className="flex items-center gap-4">
           <NavLink
             to="/students"
-            className="p-2 border border-border rounded-full hover:bg-accent hover:text-accent-foreground transition text-gray-600 dark:text-gray-400"
+            className="p-2 border border-border rounded-full hover:bg-accent hover:text-accent-foreground transition text-muted-foreground"
           >
             <ArrowLeft className="w-5 h-5" />
           </NavLink>
@@ -179,11 +167,11 @@ export function StudentDetailsPage() {
             <div className="w-full text-left space-y-4">
               <div>
                 <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
-                  <User className="w-4 h-4 text-gray-500" /> Assigned Specialists
+                  <User className="w-4 h-4 text-muted-foreground" /> Assigned Specialists
                 </h4>
                 <div className="flex flex-col gap-2">
                   {student.assigned_specialists.map(sp => (
-                    <div key={sp} className="text-sm text-foreground bg-gray-100 dark:bg-gray-800/80 p-2 rounded-md border border-border/50">
+                    <div key={sp} className="text-sm text-foreground bg-muted/80 p-2 rounded-md border border-border/50">
                       {sp}
                     </div>
                   ))}
@@ -192,12 +180,12 @@ export function StudentDetailsPage() {
               
               <div>
                 <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
-                  <CheckCircle2 className="w-4 h-4 text-gray-500" /> Overall Completion
+                  <CheckCircle2 className="w-4 h-4 text-muted-foreground" /> Overall Completion
                 </h4>
                 <div className="flex items-center gap-3">
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div className="w-full bg-muted rounded-full h-2">
                     <div 
-                      className="bg-gray-900 dark:bg-gray-100 h-2 rounded-full" 
+                      className="bg-primary h-2 rounded-full" 
                       style={{ width: student.taskCompletion }}
                     />
                   </div>
@@ -208,49 +196,49 @@ export function StudentDetailsPage() {
           </CardContent>
         </Card>
 
-        {/* Right Col: Notes and Specific info */}
-        <Card className="col-span-1 lg:col-span-2 border-border bg-card text-card-foreground/50 shadow-sm flex flex-col justify-center">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-gray-500 outline-none" /> Specialist Notes
-            </CardTitle>
-            <CardDescription>Current observations and recommendations</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 p-4 rounded-xl">
-              <p className="text-gray-700 dark:text-gray-300 leading-relaxed italic border-l-4 border-amber-300 dark:border-amber-700 pl-4 py-1">
-                "{student.specialist_notes}"
-              </p>
+        {/* Right Col: Assigned Tasks */}
+        <Card id="assigned-tasks" className="col-span-1 lg:col-span-2 border-border bg-card text-card-foreground/50 shadow-sm flex flex-col justify-center scroll-mt-6">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="w-5 h-5 text-muted-foreground" /> Assigned Tasks
+              </CardTitle>
+              <CardDescription className="mt-1">All current and past tasks assigned to this student</CardDescription>
             </div>
+            <Badge variant="secondary" className="bg-muted text-foreground font-medium">
+              {student.tasks?.length || 0} Tasks Total
+            </Badge>
+          </CardHeader>
+          <CardContent className="pt-6 overflow-y-auto max-h-[300px]">
+            {student.tasks && student.tasks.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {student.tasks.map(task => (
+                  <TaskItem key={task.id} task={task} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground italic">
+                No tasks are currently assigned to this student.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Middle Section: Assigned Tasks */}
-      <Card id="assigned-tasks" className="border-border bg-card text-card-foreground/50 shadow-sm scroll-mt-6">
-        <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-gray-500" /> Assigned Tasks
-            </CardTitle>
-            <CardDescription className="mt-1">All current and past tasks assigned to this student</CardDescription>
-          </div>
-          <Badge variant="secondary" className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium">
-            {student.tasks?.length || 0} Tasks Total
-          </Badge>
+      {/* Middle Section: Specialist Notes */}
+      <Card className="border-border bg-card text-card-foreground/50 shadow-sm w-full min-h-[150px]">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-muted-foreground outline-none" /> Specialist Notes
+          </CardTitle>
+          <CardDescription>Current observations and recommendations</CardDescription>
         </CardHeader>
-        <CardContent className="pt-6">
-          {student.tasks && student.tasks.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {student.tasks.map(task => (
-                <TaskItem key={task.id} task={task} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground italic">
-              No tasks are currently assigned to this student.
-            </div>
-          )}
+        <CardContent>
+          <div className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 p-4 rounded-xl h-full">
+            <p className="text-foreground leading-relaxed italic border-l-4 border-amber-300 dark:border-amber-700 pl-4 py-1">
+              "{student.specialist_notes}"
+            </p>
+          </div>
         </CardContent>
       </Card>
 
@@ -335,28 +323,6 @@ export function StudentDetailsPage() {
                   />
                 </Pie>
               </PieChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        {/* Progress Tracker (Radar Chart) */}
-        <Card className="flex flex-col shadow-sm border-border">
-          <CardHeader className="items-center pb-4">
-            <CardTitle className="text-lg">Progress Tracker</CardTitle>
-            <CardDescription>Overall spectrum metrics</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 pb-0">
-            <ChartContainer config={progressChartConfig} className="mx-auto aspect-[4/3] w-full mt-2 h-[220px]">
-              <RadarChart data={student.progress_metrics}>
-                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                <PolarAngleAxis dataKey="subject" />
-                <PolarGrid />
-                <Radar
-                  dataKey="score"
-                  fill="var(--color-score)"
-                  fillOpacity={0.6}
-                />
-              </RadarChart>
             </ChartContainer>
           </CardContent>
         </Card>

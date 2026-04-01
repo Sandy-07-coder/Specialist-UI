@@ -18,7 +18,7 @@ export function DashboardLayout() {
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsSidebarOpen(true)}
-              className="p-1.5 -ml-1.5 rounded-md text-gray-500 hover:bg-accent hover:text-foreground transition-colors"
+              className="p-1.5 -ml-1.5 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
               aria-label="Toggle Menu"
             >
               <Menu className="w-6 h-6" />

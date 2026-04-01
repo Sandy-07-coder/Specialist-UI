@@ -35,13 +35,13 @@ const TaskItem = ({ task }) => {
         className="flex items-center justify-between cursor-pointer" 
         onClick={() => setExpanded(!expanded)}
       >
-        <span className="font-medium text-sm text-gray-900 dark:text-gray-200">{task.title}</span>
-        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-gray-200 dark:hover:bg-gray-700 text-muted-foreground hover:text-gray-900 dark:hover:text-gray-100">
+        <span className="font-medium text-sm text-foreground">{task.title}</span>
+        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-accent text-muted-foreground hover:text-accent-foreground">
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </Button>
       </div>
       {expanded && (
-        <div className="mt-3 text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap pl-1 border-l-2 border-gray-300 dark:border-gray-600">
+        <div className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap pl-1 border-l-2 border-gray-300 dark:border-gray-600">
           {task.description}
         </div>
       )}
@@ -63,17 +63,17 @@ const StudentTaskCard = ({ student }) => {
             <CardTitle className="text-lg text-foreground">{student.name}</CardTitle>
             <CardDescription className="text-xs mt-1 flex items-center gap-2">
               <span className="text-muted-foreground">{student.diagnosis}</span>
-              <span className="text-gray-300 dark:text-gray-600">•</span>
-              <span className="text-muted-foreground">Completion: <span className="font-semibold text-gray-900 dark:text-gray-200">{student.taskCompletion}</span></span>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-muted-foreground">Completion: <span className="font-semibold text-foreground">{student.taskCompletion}</span></span>
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="pt-4 flex-1 flex flex-col">
         <div className="space-y-1 flex-1">
-          <h4 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300 flex items-center justify-between">
+          <h4 className="text-sm font-semibold mb-3 text-foreground flex items-center justify-between">
             Recent Completed Tasks
-            <Badge variant="secondary" className="font-normal text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 border-transparent">{student.tasks?.filter(t => t.status === "Completed").length || 0}</Badge>
+            <Badge variant="secondary" className="font-normal text-xs bg-muted text-muted-foreground hover:bg-accent border-transparent">{student.tasks?.filter(t => t.status === "Completed").length || 0}</Badge>
           </h4>
           {student.tasks && student.tasks.filter(t => t.status === "Completed").length > 0 ? (
             <div className="space-y-2">
@@ -82,7 +82,7 @@ const StudentTaskCard = ({ student }) => {
               ))}
             </div>
           ) : (
-             <div className="text-sm text-gray-500 dark:text-gray-500 text-center py-6 italic border border-dashed border-border rounded-md bg-gray-50 dark:bg-gray-900/50">
+             <div className="text-sm text-muted-foreground text-center py-6 italic border border-dashed border-border rounded-md bg-muted/50">
                No recent completed tasks.
              </div>
           )}
@@ -155,17 +155,17 @@ export default function TasksPage() {
             </DialogHeader>
             <div className="grid gap-4 py-4">
                <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="student" className="text-right text-gray-700 dark:text-gray-300">
+                <Label htmlFor="student" className="text-right text-foreground">
                   Student
                 </Label>
                 <div className="col-span-3">
                     <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
-                        <SelectTrigger className="border-border bg-white dark:bg-gray-800 text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500">
+                        <SelectTrigger className="border-border bg-background text-foreground placeholder:text-muted-foreground">
                             <SelectValue placeholder="Select a student" />
                         </SelectTrigger>
-                        <SelectContent className="bg-white dark:bg-gray-800 border-border">
+                        <SelectContent className="bg-background border-border">
                             {students.map(student => (
-                                <SelectItem key={student.id} value={student.id} className="text-foreground focus:bg-gray-100 dark:focus:bg-gray-700 cursor-pointer">{student.name}</SelectItem>
+                                <SelectItem key={student.id} value={student.id} className="text-foreground focus:bg-accent cursor-pointer">{student.name}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -173,7 +173,7 @@ export default function TasksPage() {
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right text-gray-700 dark:text-gray-300">
+                <Label htmlFor="title" className="text-right text-foreground">
                   Title
                 </Label>
                 <Input
@@ -181,11 +181,11 @@ export default function TasksPage() {
                   placeholder="e.g., Morning Routine"
                   value={newTaskTitle}
                   onChange={(e) => setNewTaskTitle(e.target.value)}
-                  className="col-span-3 border-border bg-white dark:bg-gray-800 text-foreground placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  className="col-span-3 border-border bg-background text-foreground placeholder:text-muted-foreground"
                 />
               </div>
               <div className="grid grid-cols-4 items-start gap-4">
-                <Label htmlFor="description" className="text-right mt-2 text-gray-700 dark:text-gray-300">
+                <Label htmlFor="description" className="text-right mt-2 text-foreground">
                   Description
                 </Label>
                 <textarea
@@ -193,7 +193,7 @@ export default function TasksPage() {
                   placeholder="Task details and instructions..."
                   value={newTaskDesc}
                   onChange={(e) => setNewTaskDesc(e.target.value)}
-                  className="col-span-3 flex min-h-[80px] w-full rounded-md border border-border bg-white dark:bg-gray-800 px-3 py-2 text-sm ring-offset-white dark:ring-offset-gray-900 placeholder:text-gray-400 dark:placeholder:text-gray-500 text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="col-span-3 flex min-h-[80px] w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-white dark:ring-offset-gray-900 placeholder:text-muted-foreground text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
             </div>

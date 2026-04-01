@@ -215,7 +215,7 @@ export function DashboardPage() {
                   <div className="flex items-center">
                     <button 
                       onClick={prevMonth}
-                      className="p-2 text-gray-700 dark:text-gray-300 hover:bg-accent hover:text-accent-foreground rounded-full transition-colors"
+                      className="p-2 text-foreground hover:bg-accent hover:text-accent-foreground rounded-full transition-colors"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
@@ -224,7 +224,7 @@ export function DashboardPage() {
                     </span>
                     <button 
                       onClick={nextMonth}
-                      className="p-2 text-gray-700 dark:text-gray-300 hover:bg-accent hover:text-accent-foreground rounded-full transition-colors"
+                      className="p-2 text-foreground hover:bg-accent hover:text-accent-foreground rounded-full transition-colors"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
@@ -245,7 +245,7 @@ export function DashboardPage() {
               </DialogHeader>
               <form onSubmit={handleAddEvent} className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="text-gray-700 dark:text-gray-300">Event Title</Label>
+                  <Label htmlFor="title" className="text-foreground">Event Title</Label>
                   <Input 
                     id="title" 
                     required
@@ -257,7 +257,7 @@ export function DashboardPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="date" className="text-gray-700 dark:text-gray-300">Date</Label>
+                    <Label htmlFor="date" className="text-foreground">Date</Label>
                     <Input 
                       id="date" 
                       type="date"
@@ -268,7 +268,7 @@ export function DashboardPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="time" className="text-gray-700 dark:text-gray-300">Time</Label>
+                    <Label htmlFor="time" className="text-foreground">Time</Label>
                     <Input 
                       id="time" 
                       required
@@ -280,7 +280,7 @@ export function DashboardPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="location" className="text-gray-700 dark:text-gray-300">Location</Label>
+                  <Label htmlFor="location" className="text-foreground">Location</Label>
                   <Input 
                     id="location" 
                     value={newEvent.location}
@@ -290,7 +290,7 @@ export function DashboardPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="type" className="text-gray-700 dark:text-gray-300">Target Type</Label>
+                  <Label htmlFor="type" className="text-foreground">Target Type</Label>
                   <select 
                     id="type"
                     value={newEvent.type}
@@ -334,7 +334,7 @@ export function DashboardPage() {
                     key={day.toString()} 
                     className={`
                       min-h-[80px] p-2 rounded-lg border flex flex-col items-center xl:items-start transition-colors
-                      ${!isCurrentMonth ? 'bg-gray-50 dark:bg-gray-900/50 text-gray-400 dark:text-gray-600 border-transparent dark:border-transparent' : 'bg-card text-card-foreground text-foreground border-border'}
+                      ${!isCurrentMonth ? 'bg-muted/50 text-muted-foreground border-transparent dark:border-transparent' : 'bg-card text-card-foreground text-foreground border-border'}
                       ${isTodayDay ? 'ring-2 ring-primary/50 border-transparent' : ''}
                       hover:border-slate-200 dark:hover:border-slate-800 hover:shadow-md hover:shadow-gray-200/50 dark:hover:shadow-none cursor-pointer
                     `}
@@ -365,7 +365,7 @@ export function DashboardPage() {
         <Card className="lg:col-span-1 border-border border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg flex flex-col h-full">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
-              <CalendarIcon className="w-5 h-5 text-gray-500" />
+              <CalendarIcon className="w-5 h-5 text-muted-foreground" />
               Upcoming Events
             </CardTitle>
             <CardDescription className="text-muted-foreground">Today's schedule</CardDescription>

@@ -27,7 +27,7 @@ export function Sidebar({ isOpen, setIsOpen }) {
         }`}
       >
         <div className="flex justify-end p-4 md:hidden">
-          <button onClick={() => setIsOpen(false)} className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-100">
+          <button onClick={() => setIsOpen(false)} className="text-muted-foreground hover:text-foreground">
             <X className="w-6 h-6" />
           </button>
         </div>

@@ -81,7 +81,7 @@ export function StudentsPage() {
         {/* Search Bar */}
         <div className="relative flex-1">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-4 w-4 text-gray-400" />
+            <Search className="h-4 w-4 text-muted-foreground" />
           </div>
           <input
             type="text"
@@ -164,8 +164,8 @@ export function StudentsPage() {
                     <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell whitespace-nowrap">{student.mood}</td>
                     <td className="py-3 px-4 text-sm text-muted-foreground min-w-[120px]">
                       <div className="flex items-center gap-3">
-                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 max-w-[4rem]">
-                          <div className="bg-gray-900 dark:bg-gray-100 h-2 rounded-full" style={{ width: student.taskCompletion }}></div>
+                        <div className="w-full bg-muted rounded-full h-2 max-w-[4rem]">
+                          <div className="bg-primary h-2 rounded-full" style={{ width: student.taskCompletion }}></div>
                         </div>
                         <span className="text-xs">{student.taskCompletion}</span>
                       </div>
