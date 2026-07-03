@@ -30,18 +30,18 @@ const TaskItem = ({ task }) => {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="border border-border/50 rounded-md p-3 mb-2 bg-muted/40 hover:bg-accent hover:text-accent-foreground/80 transition-colors">
+    <div className="group border border-border/50 rounded-md p-3 mb-2 bg-muted/40 hover:bg-accent hover:text-accent-foreground transition-colors">
       <div 
         className="flex items-center justify-between cursor-pointer" 
         onClick={() => setExpanded(!expanded)}
       >
-        <span className="font-medium text-sm text-foreground">{task.title}</span>
-        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-accent text-muted-foreground hover:text-accent-foreground">
+        <span className="font-medium text-sm text-foreground group-hover:text-accent-foreground dark:group-hover:text-accent-foreground">{task.title}</span>
+        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-accent-foreground dark:group-hover:text-accent-foreground">
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </Button>
       </div>
       {expanded && (
-        <div className="mt-3 text-sm text-muted-foreground whitespace-pre-wrap pl-1 border-l-2 border-gray-300 dark:border-gray-600">
+        <div className="mt-3 text-sm text-muted-foreground group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90 whitespace-pre-wrap pl-1 border-l-2 border-gray-300 dark:border-gray-600 group-hover:border-white/50 dark:group-hover:border-white/50">
           {task.description}
         </div>
       )}
@@ -73,7 +73,7 @@ const StudentTaskCard = ({ student }) => {
         <div className="space-y-1 flex-1">
           <h4 className="text-sm font-semibold mb-3 text-foreground flex items-center justify-between">
             Recent Completed Tasks
-            <Badge variant="secondary" className="font-normal text-xs bg-muted text-muted-foreground hover:bg-accent border-transparent">{student.tasks?.filter(t => t.status === "Completed").length || 0}</Badge>
+            <Badge variant="secondary" className="font-normal text-xs bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground dark:hover:text-accent-foreground border-transparent">{student.tasks?.filter(t => t.status === "Completed").length || 0}</Badge>
           </h4>
           {student.tasks && student.tasks.filter(t => t.status === "Completed").length > 0 ? (
             <div className="space-y-2">
