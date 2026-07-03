@@ -148,7 +148,7 @@ export function DashboardPage() {
         <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Students</CardTitle>
-            <Users className="w-5 h-5 text-primary/50" />
+            <Users className="w-5 h-5 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-foreground">{metrics.totalStudents}</div>
@@ -159,7 +159,7 @@ export function DashboardPage() {
         <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Tasks Per Week (Avg)</CardTitle>
-            <Activity className="w-5 h-5 text-purple-500" />
+            <Activity className="w-5 h-5 text-secondary" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-foreground">{Math.round(metrics.totalAssignedTasks / 4)}</div>
@@ -170,7 +170,7 @@ export function DashboardPage() {
         <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Tasks Assigned Total</CardTitle>
-            <CheckSquare className="w-5 h-5 text-amber-500" />
+            <CheckSquare className="w-5 h-5 text-primary" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-foreground">{metrics.totalAssignedTasks}</div>
@@ -181,7 +181,7 @@ export function DashboardPage() {
         <Card className="border-border bg-card text-card-foreground shadow-md shadow-gray-200/50 dark:shadow-none transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg hover:-translate-y-1 hover:shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Tasks Completed</CardTitle>
-            <CheckSquare className="w-5 h-5 text-green-500" />
+            <CheckSquare className="w-5 h-5 text-accent" />
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-foreground">{metrics.totalCompletedTasks}</div>

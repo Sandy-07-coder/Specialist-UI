@@ -31,36 +31,36 @@ const TaskItem = ({ task }) => {
   const dateStr = task.assignedDate || "Mar 20, 2026";
 
   return (
-    <div className="border border-border/50 rounded-md p-4 bg-background/40 hover:bg-accent hover:text-accent-foreground/80 transition-colors shadow-sm mb-3">
+    <div className="group border border-border/50 rounded-md p-4 bg-background/40 hover:bg-accent hover:text-accent-foreground transition-colors shadow-sm mb-3">
       <div 
         className="flex items-start sm:items-center justify-between cursor-pointer flex-col sm:flex-row gap-2" 
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3">
           {isCompleted ? (
-            <CheckCircle2 className="h-5 w-5 text-green-500" />
+            <CheckCircle2 className="h-5 w-5 text-green-500 group-hover:text-white dark:group-hover:text-white transition-colors" />
           ) : (
-            <Clock className="h-5 w-5 text-orange-500" />
+            <Clock className="h-5 w-5 text-orange-500 group-hover:text-white dark:group-hover:text-white transition-colors" />
           )}
           <div>
-            <div className={`font-medium text-base ${isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+            <div className={`font-medium text-base group-hover:text-accent-foreground dark:group-hover:text-accent-foreground transition-colors ${isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
               {task.title}
             </div>
-            <div className="text-xs text-muted-foreground mt-1">Assigned: {dateStr}</div>
+            <div className="text-xs text-muted-foreground group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90 mt-1 transition-colors">Assigned: {dateStr}</div>
           </div>
         </div>
         
         <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-          <Badge variant={isCompleted ? "outline" : "default"} className={`text-xs font-normal border-transparent ${isCompleted ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'}`}>
+          <Badge variant={isCompleted ? "outline" : "default"} className={`text-xs font-normal border-transparent group-hover:bg-white/20 dark:group-hover:bg-white/20 group-hover:text-white dark:group-hover:text-white transition-colors ${isCompleted ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'}`}>
             {task.status || "Pending"}
           </Badge>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-accent text-muted-foreground hover:text-accent-foreground">
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-accent-foreground dark:group-hover:text-accent-foreground transition-colors">
             {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         </div>
       </div>
       {expanded && (
-        <div className="mt-4 pt-3 ml-0 sm:ml-8 text-sm text-muted-foreground whitespace-pre-wrap pl-3 border-l-2 border-gray-300 dark:border-gray-600">
+        <div className="mt-4 pt-3 ml-0 sm:ml-8 text-sm text-muted-foreground group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90 whitespace-pre-wrap pl-3 border-l-2 border-gray-300 dark:border-gray-600 group-hover:border-white/50 dark:group-hover:border-white/50 transition-colors">
           {task.description}
         </div>
       )}

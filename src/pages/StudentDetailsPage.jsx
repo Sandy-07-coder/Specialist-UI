@@ -36,30 +36,30 @@ const TaskItem = ({ task }) => {
   const isCompleted = task.status === "Completed";
 
   return (
-    <div className="border border-border/50 rounded-md p-3 bg-muted/40 hover:bg-accent hover:text-accent-foreground/80 transition-colors">
+    <div className="group border border-border/50 rounded-md p-3 bg-muted/40 hover:bg-accent hover:text-accent-foreground transition-colors">
       <div 
         className="flex items-center justify-between cursor-pointer" 
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3">
           {isCompleted ? (
-            <CheckCircle2 className="h-5 w-5 text-green-500" />
+            <CheckCircle2 className="h-5 w-5 text-green-500 group-hover:text-white dark:group-hover:text-white transition-colors" />
           ) : (
-            <Clock className="h-5 w-5 text-orange-500" />
+            <Clock className="h-5 w-5 text-orange-500 group-hover:text-white dark:group-hover:text-white transition-colors" />
           )}
-          <span className={`font-medium text-sm ${isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+          <span className={`font-medium text-sm group-hover:text-accent-foreground dark:group-hover:text-accent-foreground transition-colors ${isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
             {task.title}
           </span>
-          <Badge variant={isCompleted ? "outline" : "default"} className={`ml-2 text-xs font-normal border-transparent ${isCompleted ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'}`}>
+          <Badge variant={isCompleted ? "outline" : "default"} className={`ml-2 text-xs font-normal border-transparent group-hover:bg-white/20 dark:group-hover:bg-white/20 group-hover:text-white dark:group-hover:text-white transition-colors ${isCompleted ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'}`}>
             {task.status || "Pending"}
           </Badge>
         </div>
-        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-accent text-muted-foreground hover:text-accent-foreground">
+        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-accent-foreground dark:group-hover:text-accent-foreground transition-colors">
           {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
         </Button>
       </div>
       {expanded && (
-        <div className="mt-3 ml-8 text-sm text-muted-foreground whitespace-pre-wrap pl-3 border-l-2 border-gray-300 dark:border-gray-600">
+        <div className="mt-3 ml-8 text-sm text-muted-foreground group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90 whitespace-pre-wrap pl-3 border-l-2 border-gray-300 dark:border-gray-600 group-hover:border-white/50 dark:group-hover:border-white/50 transition-colors">
           {task.description}
         </div>
       )}
