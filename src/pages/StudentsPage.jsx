@@ -153,25 +153,25 @@ export function StudentsPage() {
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => (
-                  <tr key={student.id} className="hover:bg-accent hover:text-accent-foreground/50 transition-colors">
-                    <td className="py-3 px-4 text-sm font-medium text-foreground whitespace-nowrap">{student.name}</td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground whitespace-nowrap">{student.age}</td>
+                  <tr key={student.id} className="group hover:bg-accent hover:text-accent-foreground transition-colors">
+                    <td className="py-3 px-4 text-sm font-medium text-foreground group-hover:text-accent-foreground dark:group-hover:text-accent-foreground whitespace-nowrap">{student.name}</td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90 whitespace-nowrap">{student.age}</td>
                     <td className="py-3 px-4 text-sm whitespace-nowrap">
-                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-50 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400 ring-1 ring-inset ring-slate-700/10 dark:ring-slate-400/20">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-50 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400 ring-1 ring-inset ring-slate-700/10 dark:ring-slate-400/20 group-hover:bg-white/20 group-hover:text-white dark:group-hover:text-white group-hover:ring-white/30 dark:group-hover:bg-white/20 dark:group-hover:ring-white/30 transition-colors">
                         {student.diagnosis}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell whitespace-nowrap">{student.mood}</td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground min-w-[120px]">
+                    <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell whitespace-nowrap group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90">{student.mood}</td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground min-w-[120px] group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90">
                       <div className="flex items-center gap-3">
-                        <div className="w-full bg-muted rounded-full h-2 max-w-[4rem]">
-                          <div className="bg-primary h-2 rounded-full" style={{ width: student.taskCompletion }}></div>
+                        <div className="w-full bg-muted group-hover:bg-white/30 dark:group-hover:bg-white/30 rounded-full h-2 max-w-[4rem] transition-colors">
+                          <div className="bg-primary group-hover:bg-white dark:group-hover:bg-white h-2 rounded-full transition-colors" style={{ width: student.taskCompletion }}></div>
                         </div>
-                        <span className="text-xs">{student.taskCompletion}</span>
+                        <span className="text-xs group-hover:text-accent-foreground dark:group-hover:text-accent-foreground">{student.taskCompletion}</span>
                       </div>
                     </td>
                     <td className="py-3 px-4 text-sm text-right whitespace-nowrap">
-                      <NavLink to={`/students/${student.id}`} className="text-foreground hover:underline font-medium transition-colors">
+                      <NavLink to={`/students/${student.id}`} className="text-foreground group-hover:text-accent-foreground dark:group-hover:text-accent-foreground hover:underline font-medium transition-colors">
                         View
                       </NavLink>
                     </td>
