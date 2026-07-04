@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { LandingPage } from "@/pages/LandingPage";
 import { SignInPage } from "@/pages/SignInPage";
 import { SignUpPage } from "@/pages/SignUpPage";
+import { SettingsPage } from "@/pages/SettingsPage";
 import "./App.css";
 
 // --- Dummy Pages ---
@@ -58,7 +59,7 @@ export default function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/specialists/:name" element={<ProfilePage />} />
             <Route path="/assessment" element={<PagePlaceholder title="Assessment" />} />
-            <Route path="/settings" element={<PagePlaceholder title="Settings" />} />
+            <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Routes>
       </Router>

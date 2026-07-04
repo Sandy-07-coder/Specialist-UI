@@ -141,38 +141,38 @@ export function StudentsPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[600px]">
             <thead>
-              <tr className="bg-muted/50 border-b border-border">
-                <th className="py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">Name</th>
-                <th className="py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">Age</th>
-                <th className="py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">Diagnosis</th>
-                <th className="py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap hidden sm:table-cell">Last Mood</th>
-                <th className="py-3 px-4 text-sm font-semibold text-foreground whitespace-nowrap">Task Completion</th>
-                <th className="py-3 px-4 text-sm font-semibold text-foreground text-right whitespace-nowrap">Action</th>
+              <tr className="bg-slate-50 dark:bg-slate-800/60 border-b-2 border-primary/20">
+                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap">Name</th>
+                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap">Age</th>
+                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap">Diagnosis</th>
+                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap hidden sm:table-cell">Last Mood</th>
+                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 whitespace-nowrap">Task Completion</th>
+                <th className="py-3 px-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 text-right whitespace-nowrap">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
               {filteredStudents.length > 0 ? (
                 filteredStudents.map((student) => (
-                  <tr key={student.id} className="group hover:bg-accent hover:text-accent-foreground transition-colors">
-                    <td className="py-3 px-4 text-sm font-medium text-foreground group-hover:text-accent-foreground dark:group-hover:text-accent-foreground whitespace-nowrap">{student.name}</td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90 whitespace-nowrap">{student.age}</td>
+                  <tr key={student.id} className="group hover:bg-accent hover:text-accent-foreground transition-colors odd:bg-white even:bg-slate-50/70 dark:odd:bg-transparent dark:even:bg-slate-800/20">
+                    <td className="py-3 px-4 text-sm font-semibold text-slate-800 dark:text-slate-100 group-hover:text-accent-foreground dark:group-hover:text-accent-foreground whitespace-nowrap">{student.name}</td>
+                    <td className="py-3 px-4 text-sm text-slate-500 dark:text-slate-400 group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90 whitespace-nowrap">{student.age}</td>
                     <td className="py-3 px-4 text-sm whitespace-nowrap">
-                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-slate-50 text-slate-700 dark:bg-slate-500/10 dark:text-slate-400 ring-1 ring-inset ring-slate-700/10 dark:ring-slate-400/20 group-hover:bg-white/20 group-hover:text-white dark:group-hover:text-white group-hover:ring-white/30 dark:group-hover:bg-white/20 dark:group-hover:ring-white/30 transition-colors">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-primary/8 text-primary dark:bg-primary/15 dark:text-primary ring-1 ring-inset ring-primary/20 dark:ring-primary/25 group-hover:bg-white/20 dark:group-hover:text-white group-hover:text-white group-hover:ring-white/30 dark:group-hover:bg-white/20 dark:group-hover:ring-white/30 transition-colors">
                         {student.diagnosis}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground hidden sm:table-cell whitespace-nowrap group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90">{student.mood}</td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground min-w-[120px] group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90">
+                    <td className="py-3 px-4 text-sm text-slate-500 dark:text-slate-400 hidden sm:table-cell whitespace-nowrap group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90">{student.mood}</td>
+                    <td className="py-3 px-4 text-sm text-slate-500 dark:text-slate-400 min-w-[120px] group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90">
                       <div className="flex items-center gap-3">
-                        <div className="w-full bg-muted group-hover:bg-white/30 dark:group-hover:bg-white/30 rounded-full h-2 max-w-[4rem] transition-colors">
-                          <div className="bg-primary group-hover:bg-white dark:group-hover:bg-white h-2 rounded-full transition-colors" style={{ width: student.taskCompletion }}></div>
+                        <div className="w-full bg-slate-200 dark:bg-slate-700 group-hover:bg-white/30 dark:group-hover:bg-white/30 rounded-full h-1.5 max-w-[4rem] transition-colors">
+                          <div className="bg-primary group-hover:bg-white dark:group-hover:bg-white h-1.5 rounded-full transition-colors" style={{ width: student.taskCompletion }}></div>
                         </div>
-                        <span className="text-xs group-hover:text-accent-foreground dark:group-hover:text-accent-foreground">{student.taskCompletion}</span>
+                        <span className="text-xs font-medium group-hover:text-accent-foreground dark:group-hover:text-accent-foreground">{student.taskCompletion}</span>
                       </div>
                     </td>
                     <td className="py-3 px-4 text-sm text-right whitespace-nowrap">
-                      <NavLink to={`/students/${student.id}`} className="text-foreground group-hover:text-accent-foreground dark:group-hover:text-accent-foreground hover:underline font-medium transition-colors">
-                        View
+                      <NavLink to={`/students/${student.id}`} className="text-primary group-hover:text-accent-foreground dark:group-hover:text-accent-foreground hover:underline font-medium text-xs transition-colors">
+                        View →
                       </NavLink>
                     </td>
                   </tr>

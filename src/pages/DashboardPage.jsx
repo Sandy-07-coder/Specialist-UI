@@ -329,6 +329,15 @@ export function DashboardPage() {
                 const isCurrentMonth = isSameMonth(day, monthStart);
                 const isTodayDay = isToday(day);
 
+                const eventColor = (type) => {
+                  switch (type) {
+                    case "Visit":       return "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300";
+                    case "Observation": return "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300";
+                    case "Therapy":     return "bg-teal-50 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300";
+                    default:            return "bg-slate-100 text-slate-600 dark:bg-slate-700/50 dark:text-slate-300";
+                  }
+                };
+
                 return (
                   <div 
                     key={day.toString()} 
@@ -347,7 +356,7 @@ export function DashboardPage() {
                         <div 
                           key={event.id} 
                           title={event.title}
-                          className="text-[10px] xl:text-xs truncate w-full bg-primary/10 text-primary px-1.5 py-1 rounded"
+                          className={`text-[10px] xl:text-xs truncate w-full ${eventColor(event.type)} px-1.5 py-1 rounded font-medium`}
                         >
                           <span className="hidden xl:inline">{event.time.split(' - ')[0]} </span>
                           <span className="font-semibold xl:font-normal">{event.title}</span>
