@@ -52,7 +52,7 @@ const TaskItem = ({ task }) => {
 
 const StudentTaskCard = ({ student }) => {
   return (
-    <Card className="h-full bg-card text-card-foreground border-border flex flex-col shadow-sm dark:shadow-none hover:shadow-md dark:hover:border-gray-700 transition-all">
+    <Card className="h-full bg-card text-card-foreground border-border flex flex-col shadow-sm dark:shadow-none hover:shadow-md dark:hover:border-slate-700 transition-all border-l-2 border-l-primary/30 hover:border-l-primary/60">
       <CardHeader className="pb-3 border-b border-border">
         <div className="flex items-center gap-4">
           <Avatar className="h-12 w-12 border-2 border-slate-100 dark:border-slate-900/50">
@@ -62,9 +62,9 @@ const StudentTaskCard = ({ student }) => {
           <div className="flex-1">
             <CardTitle className="text-lg text-foreground">{student.name}</CardTitle>
             <CardDescription className="text-xs mt-1 flex items-center gap-2">
-              <span className="text-muted-foreground">{student.diagnosis}</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="text-muted-foreground">Completion: <span className="font-semibold text-foreground">{student.taskCompletion}</span></span>
+              <span className="text-slate-500 dark:text-slate-400">{student.diagnosis}</span>
+              <span className="text-slate-300 dark:text-slate-600">•</span>
+              <span className="text-slate-500 dark:text-slate-400">Completion: <span className="font-semibold text-primary dark:text-primary">{student.taskCompletion}</span></span>
             </CardDescription>
           </div>
         </div>
@@ -76,20 +76,20 @@ const StudentTaskCard = ({ student }) => {
             <Badge variant="secondary" className="font-normal text-xs bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground dark:hover:text-accent-foreground border-transparent">{student.tasks?.filter(t => t.status === "Completed").length || 0}</Badge>
           </h4>
           {student.tasks && student.tasks.filter(t => t.status === "Completed").length > 0 ? (
-            <div className="space-y-2">
+            <div className="space-y-2 bg-slate-50/80 dark:bg-slate-800/30 rounded-lg p-2">
               {student.tasks.filter(t => t.status === "Completed").slice(0, 3).map(task => (
                 <TaskItem key={task.id} task={task} />
               ))}
             </div>
           ) : (
-             <div className="text-sm text-muted-foreground text-center py-6 italic border border-dashed border-border rounded-md bg-muted/50">
+             <div className="text-sm text-slate-400 dark:text-slate-500 text-center py-6 italic border border-dashed border-slate-200 dark:border-slate-700 rounded-md bg-slate-50/50 dark:bg-slate-800/20">
                No recent completed tasks.
              </div>
           )}
         </div>
         <div className="mt-4 pt-3 border-t border-border/60 text-center">
-          <Link to={`/students/${student.id}/tasks`} className="text-sm text-primary hover:text-slate-800 dark:hover:text-slate-300 hover:underline font-medium">
-            View all tasks
+          <Link to={`/students/${student.id}/tasks`} className="text-sm text-primary hover:text-primary/70 dark:hover:text-primary/80 hover:underline font-medium">
+            View all tasks →
           </Link>
         </div>
       </CardContent>

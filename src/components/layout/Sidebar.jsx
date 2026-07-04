@@ -14,17 +14,16 @@ export function Sidebar({ isOpen, setIsOpen }) {
     <>
       {/* Mobile Backdrop */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar Content */}
-      <aside 
-        className={`fixed md:sticky top-0 left-0 z-50 h-screen w-64 border-r border-border bg-card flex flex-col transition-transform duration-300 ease-in-out ${
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        }`}
+      <aside
+        className={`fixed md:sticky top-0 left-0 z-50 h-screen w-64 border-r border-border/60 bg-slate-50 dark:bg-slate-900 flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          }`}
       >
         <div className="flex justify-end p-4 md:hidden">
           <button onClick={() => setIsOpen(false)} className="text-muted-foreground hover:text-foreground">
@@ -33,24 +32,24 @@ export function Sidebar({ isOpen, setIsOpen }) {
         </div>
 
         {/* Profile Section */}
-        <NavLink 
+        <NavLink
           to="/profile"
           onClick={() => setIsOpen(false)}
-          className="p-8 pb-6 flex flex-col items-center border-b border-border md:pt-8 hover:bg-accent hover:text-accent-foreground/50 transition-colors group cursor-pointer"
+          className="p-8 pb-6 flex flex-col items-center border-b border-slate-200 dark:border-slate-800 md:pt-8 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors group cursor-pointer"
         >
-          <div className="w-24 h-24 rounded-full border-4 border-white dark:border-gray-800 shadow-sm overflow-hidden mb-4 ring-1 ring-border group-hover:ring-slate-400 dark:group-hover:ring-slate-500 transition-all duration-300">
+          <div className="w-24 h-24 rounded-full border-4 border-white dark:border-slate-700 shadow-sm overflow-hidden mb-4 ring-1 ring-slate-200 dark:ring-slate-700 group-hover:ring-primary/40 transition-all duration-300">
             <img
               src="https://api.dicebear.com/7.x/avataaars/svg?seed=Teacher"
               alt="User profile"
               className="w-full h-full object-cover bg-muted"
             />
           </div>
-          <h2 className="font-semibold text-foreground group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">Alex Johnson</h2>
-          <p className="text-sm font-medium text-muted-foreground mt-0.5">Special Educator</p>
+          <h2 className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-primary dark:group-hover:text-primary transition-colors">Alex Johnson</h2>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">Special Educator</p>
         </NavLink>
-        
+
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1.5 overflow-y-auto">
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -59,14 +58,13 @@ export function Sidebar({ isOpen, setIsOpen }) {
                 to={item.path}
                 onClick={() => setIsOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                    isActive
-                      ? "bg-primary/10 text-primary ring-1 ring-primary/20"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${isActive
+                    ? "bg-primary/10 text-primary border-l-2 border-primary pl-[10px]"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-slate-100"
                   }`
                 }
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="w-4 h-4" />
                 {item.name}
               </NavLink>
             );
