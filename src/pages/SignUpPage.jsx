@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useAuthStore } from "@/store";
 
 const countryList = [
   { code: "US", flag: "🇺🇸", dialCode: "+1" },
@@ -19,6 +20,8 @@ const countryList = [
 
 export function SignUpPage() {
   const navigate = useNavigate();
+  const { register, isLoading, error, clearError } = useAuthStore();
+
   const [step, setStep] = useState(1);
   const [profileImage, setProfileImage] = useState(null);
   const [phoneDialCode, setPhoneDialCode] = useState("+1");
@@ -35,8 +38,8 @@ export function SignUpPage() {
   const [serviceDomain, setServiceDomain] = useState("");
   const [focusAreas, setFocusAreas] = useState([]);
   
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  // localError is only for client-side validation (password mismatch, etc.)
+  const [localError, setLocalError] = useState("");
 
   const handlePhoneChange = (e) => {
     const val = e.target.value;
@@ -67,48 +70,30 @@ export function SignUpPage() {
 
   const handleNext = async (e) => {
     e.preventDefault();
-    setError("");
+    setLocalError("");
+    clearError();
 
     if (step === 1 && password !== confirmPassword) {
-      setError("Passwords do not match");
+      setLocalError("Passwords do not match");
       return;
     }
 
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      setIsLoading(true);
-      try {
-        const fullPhone = `${phoneDialCode}${phoneNumber.replace(/^\+\d+/, '')}`;
-        const response = await fetch("http://localhost:5000/api/auth/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email,
-            password,
-            name,
-            phone: fullPhone,
-            institutionName,
-            experience: Number(experience),
-            serviceDomain,
-            focusAreas
-          }),
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-          localStorage.setItem("token", data.token);
-          localStorage.setItem("user", JSON.stringify(data.user));
-          navigate("/dashboard");
-        } else {
-          setError(data.message || "Registration failed");
-        }
-      } catch (err) {
-        console.error(err);
-        setError("An error occurred during registration. Please try again.");
-      } finally {
-        setIsLoading(false);
+      const fullPhone = `${phoneDialCode}${phoneNumber.replace(/^\+\d+/, '')}`;
+      const result = await register({
+        email,
+        password,
+        name,
+        phone: fullPhone,
+        institutionName,
+        experience: Number(experience),
+        serviceDomain,
+        focusAreas,
+      });
+      if (result.success) {
+        navigate("/dashboard");
       }
     }
   };
@@ -150,7 +135,9 @@ export function SignUpPage() {
         
         <form onSubmit={handleNext}>
           <CardContent className="space-y-4">
-            {error && <div className="text-sm font-medium text-red-500 text-center">{error}</div>}
+            {(localError || error) && (
+              <div className="text-sm font-medium text-red-500 text-center">{localError || error}</div>
+            )}
             
             {step === 1 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
