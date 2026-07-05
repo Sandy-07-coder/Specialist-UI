@@ -133,7 +133,7 @@ Then fill in the required values in your `.env` file:
 
 ```env
 # Backend API base URL
-VITE_API_BASE_URL=https://your-backend-api.com/api
+VITE_API_BASE_URL=http://localhost:5000/api
 
 # Authentication provider (if applicable)
 VITE_AUTH_SECRET=your_secret_key_here
@@ -179,7 +179,13 @@ Specialist-Web-UI/
 │   │   │   ├── select.jsx
 │   │   │   └── separator.jsx
 │   │   ├── ThemeToggle.jsx   # Dark/light mode toggle button
-│   │   └── theme-provider.jsx# Theme context and persistence logic
+│   │
+│   ├── store/                # Zustand state management
+│   │   ├── index.js          # Barrel exports for stores
+│   │   ├── useAuthStore.js   # Authentication and session state
+│   │   ├── useThemeStore.js  # Dark/light theme persistence
+│   │   ├── useUIStore.js     # Ephemeral UI states (sidebar toggles)
+│   │   └── useUserStore.js   # User profile and integrity metadata
 │   │
 │   ├── data/                 # Static data, mock data, and constants
 │   │
