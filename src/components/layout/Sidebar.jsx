@@ -1,7 +1,11 @@
 import { NavLink } from "react-router-dom";
-import { Users, CheckSquare, FileEdit, Settings, X, LayoutDashboard } from "lucide-react";
+import { Users, User, CheckSquare, FileEdit, Settings, X, LayoutDashboard } from "lucide-react";
+import { useUserStore } from "@/store";
 
 export function Sidebar({ isOpen, setIsOpen }) {
+  const name = useUserStore((s) => s.name) || "Specialist";
+  const serviceDomain = useUserStore((s) => s.serviceDomain) || "Special Educator";
+
   const navItems = [
     { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
     { name: "Students", path: "/students", icon: Users },
@@ -37,15 +41,11 @@ export function Sidebar({ isOpen, setIsOpen }) {
           onClick={() => setIsOpen(false)}
           className="p-8 pb-6 flex flex-col items-center border-b border-slate-200 dark:border-slate-800 md:pt-8 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors group cursor-pointer"
         >
-          <div className="w-24 h-24 rounded-full border-4 border-white dark:border-slate-700 shadow-sm overflow-hidden mb-4 ring-1 ring-slate-200 dark:ring-slate-700 group-hover:ring-primary/40 transition-all duration-300">
-            <img
-              src="https://api.dicebear.com/7.x/avataaars/svg?seed=Teacher"
-              alt="User profile"
-              className="w-full h-full object-cover bg-muted"
-            />
+          <div className="w-24 h-24 rounded-full border-4 border-white dark:border-slate-700 shadow-sm overflow-hidden mb-4 ring-1 ring-slate-200 dark:ring-slate-700 group-hover:ring-primary/40 transition-all duration-300 flex items-center justify-center bg-gray-200 dark:bg-gray-800">
+            <User className="w-12 h-12 text-gray-400 dark:text-gray-500" />
           </div>
-          <h2 className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-primary dark:group-hover:text-primary transition-colors">Alex Johnson</h2>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">Special Educator</p>
+          <h2 className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-primary dark:group-hover:text-primary transition-colors">{name}</h2>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">{serviceDomain}</p>
         </NavLink>
 
         {/* Navigation */}

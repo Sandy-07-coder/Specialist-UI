@@ -1,14 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useUserStore } from './useUserStore';
 
 const API_BASE = 'http://localhost:5000/api';
 
 export const useAuthStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       // ── Persisted State ──────────────────────────────────────────────
       token: null,
-      user: null,
+      user: null,  // minimal: { id, email, name }
 
       // ── Transient State (reset on reload, not stored) ────────────────
       isLoading: false,
@@ -16,7 +17,7 @@ export const useAuthStore = create(
 
       // ── Actions ──────────────────────────────────────────────────────
 
-      /** Login: calls POST /api/auth/login and stores token + user. */
+      /** Login: calls POST /api/auth/login and stores token + minimal user. */
       login: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
@@ -33,6 +34,11 @@ export const useAuthStore = create(
           }
 
           set({ token: data.token, user: data.user, isLoading: false, error: null });
+
+          // Hydrate the user store with the minimal auth payload, then fetch full profile.
+          useUserStore.getState().hydrateFromAuth(data.user);
+          useUserStore.getState().fetchProfile(data.token);  // fire-and-forget
+
           return { success: true };
         } catch (err) {
           const message = 'An error occurred during login. Please try again.';
@@ -41,7 +47,7 @@ export const useAuthStore = create(
         }
       },
 
-      /** Register: calls POST /api/auth/register and stores token + user. */
+      /** Register: calls POST /api/auth/register and stores token + minimal user. */
       register: async (payload) => {
         set({ isLoading: true, error: null });
         try {
@@ -58,6 +64,11 @@ export const useAuthStore = create(
           }
 
           set({ token: data.token, user: data.user, isLoading: false, error: null });
+
+          // Hydrate the user store with the minimal auth payload, then fetch full profile.
+          useUserStore.getState().hydrateFromAuth(data.user);
+          useUserStore.getState().fetchProfile(data.token);  // fire-and-forget
+
           return { success: true };
         } catch (err) {
           const message = 'An error occurred during registration. Please try again.';
@@ -66,16 +77,17 @@ export const useAuthStore = create(
         }
       },
 
-      /** Logout: clears stored auth state. */
-      logout: () => {
+      /** Logout: clears auth state and wipes the user profile store. */
+      logout: async () => {
         set({ token: null, user: null, error: null, isLoading: false });
+        useUserStore.getState().clearProfile();
       },
 
       /** Clear any auth error (e.g. when user starts typing again). */
       clearError: () => set({ error: null }),
     }),
     {
-      name: 'repair-auth',          // localStorage key
+      name: 'repair-auth',
       // Only persist the credentials — not loading/error states
       partialize: (state) => ({ token: state.token, user: state.user }),
     }
