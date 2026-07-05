@@ -1,12 +1,14 @@
 import { LogOut, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/store";
 
 export function SettingsPage() {
   const navigate = useNavigate();
+  const { logout } = useAuthStore();
 
   const handleLogout = () => {
-    // Perform any logout logic here if needed
+    logout();
     navigate("/");
   };
 

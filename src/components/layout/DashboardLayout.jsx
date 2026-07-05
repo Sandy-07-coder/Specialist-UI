@@ -1,23 +1,23 @@
-import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useUIStore } from "@/store";
 
 export function DashboardLayout() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isSidebarOpen, openSidebar, closeSidebar } = useUIStore();
 
   return (
     <div className="flex h-screen bg-background text-foreground font-sans transition-colors overflow-hidden relative">
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <Sidebar isOpen={isSidebarOpen} setIsOpen={closeSidebar} />
       <ThemeToggle />
-      
+
       <main className="flex-1 flex flex-col h-screen overflow-hidden">
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between p-3 px-4 bg-card/80 backdrop-blur-md border-b border-border shrink-0 shadow-sm z-30">
           <div className="flex items-center gap-3">
-            <button 
-              onClick={() => setIsSidebarOpen(true)}
+            <button
+              onClick={openSidebar}
               className="p-1.5 -ml-1.5 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
               aria-label="Toggle Menu"
             >
