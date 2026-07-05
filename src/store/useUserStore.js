@@ -129,9 +129,6 @@ export const useUserStore = create(
           experience: s.experience != null ? `${s.experience} year${s.experience !== 1 ? 's' : ''}` : null,
           serviceDomain: s.serviceDomain,
           focusAreas: s.focusAreas,
-          avatarUrl: s.name
-            ? `https://api.dicebear.com/7.x/avataaars/svg?seed=${s.name.replace(/\s+/g, '')}`
-            : null,
         };
       },
 

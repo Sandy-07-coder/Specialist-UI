@@ -15,7 +15,8 @@ import {
   CheckSquare,
   Edit,
   Camera,
-  Loader2
+  Loader2,
+  User
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -132,14 +133,10 @@ export function ProfilePage() {
               <Edit className="w-4 h-4" />
             </Button>
           )}
-          <div className="relative w-32 h-32 rounded-full border-4 border-border shadow-sm overflow-hidden mb-5 group">
-            <img
-              src={storeProfile.avatarUrl ?? `https://api.dicebear.com/7.x/avataaars/svg?seed=${specialistName.replace(/\s+/g, '')}`}
-              alt={storeProfile.name ?? specialistName}
-              className="w-full h-full object-cover bg-muted"
-            />
+          <div className="relative w-32 h-32 rounded-full border-4 border-border shadow-sm overflow-hidden mb-5 group flex items-center justify-center bg-gray-200 dark:bg-gray-800">
+            <User className="w-16 h-16 text-gray-400 dark:text-gray-500" />
             {isPersonal && (
-              <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white">
+              <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white z-10">
                 <Camera className="w-6 h-6 mb-1" />
                 <span className="text-[10px] font-medium tracking-wide">Edit</span>
                 <input type="file" accept="image/*" className="hidden" />
