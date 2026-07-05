@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -14,80 +14,105 @@ import {
   ListTodo,
   CheckSquare,
   Edit,
-  Camera
+  Camera,
+  Loader2,
+  User
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { studentsData } from "@/data/students";
+import { useUserStore, useAuthStore } from "@/store";
 
 export function ProfilePage() {
   const { name } = useParams();
   const isPersonal = !name;
-  const specialistName = name ? decodeURIComponent(name) : "Alex Johnson";
 
-  const [profile, setProfile] = useState({
-    name: specialistName,
-    photo: `https://api.dicebear.com/7.x/avataaars/svg?seed=${specialistName.replace(/\s+/g, '')}`,
-    domain: "Special Educator",
-    institution: "Sunrise Inclusive Academy",
-    experience: "8 years",
-    serviceDomains: [
-      "Early Intervention",
-      "Academic Intervention",
-      "Vocational Support"
-    ],
-    assessmentMethods: [] // Intentionally empty as requested or mock data
-  });
+  // ── Store ─────────────────────────────────────────────────────────────────
+  const {
+    isProfileLoaded,
+    isLoading,
+    fetchProfile,
+    updateProfile,
+    getDisplayProfile,
+  } = useUserStore();
+  const token = useAuthStore((s) => s.token);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Fetch full profile on mount if it hasn't been loaded yet
+  useEffect(() => {
+    if (isPersonal && !isProfileLoaded && token) {
+      fetchProfile(token);
+    }
+  }, [isPersonal, isProfileLoaded, token, fetchProfile]);
+
+  // ── Derived profile data ───────────────────────────────────────────────────
+  const storeProfile = getDisplayProfile();
+
+  // For another specialist's page we still fall back to mock data
+  const specialistName = isPersonal
+    ? (storeProfile.name ?? "Specialist")
+    : decodeURIComponent(name);
+
+  // Local edit state (mirrors store for personal profile; isolated for others)
   const [editForm, setEditForm] = useState({
     name: "",
     domain: "",
     institution: "",
     experience: "",
     serviceDomains: "",
-    assessmentMethods: ""
+    assessmentMethods: "",
   });
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleOpenEdit = () => {
     setEditForm({
-      ...profile,
-      serviceDomains: profile.serviceDomains.join(", "),
-      assessmentMethods: profile.assessmentMethods.join(", ")
+      name: storeProfile.name ?? "",
+      domain: storeProfile.serviceDomain ?? "",
+      institution: storeProfile.institutionName ?? "",
+      experience: storeProfile.experience ?? "",
+      serviceDomains: (storeProfile.focusAreas ?? []).join(", "),
+      assessmentMethods: "",
     });
     setIsModalOpen(true);
   };
 
   const handleSave = () => {
-    setProfile({
-      ...editForm,
-      serviceDomains: editForm.serviceDomains.split(",").map(s => s.trim()).filter(Boolean),
-      assessmentMethods: editForm.assessmentMethods.split(",").map(s => s.trim()).filter(Boolean)
+    updateProfile({
+      name: editForm.name,
+      serviceDomain: editForm.domain,
+      institutionName: editForm.institution,
+      experience: editForm.experience,
+      focusAreas: editForm.serviceDomains.split(",").map((s) => s.trim()).filter(Boolean),
     });
     setIsModalOpen(false);
   };
 
-  // Calculate statistics based on mapped assigned students
+  // ── Statistics ────────────────────────────────────────────────────────────
   const { assignedStudents, totalTasks, completedTasks } = useMemo(() => {
-    const studentsAssigned = studentsData.filter(s => s.assigned_specialists.includes(specialistName));
+    const studentsAssigned = studentsData.filter((s) =>
+      s.assigned_specialists.includes(specialistName)
+    );
     let tTasks = 0;
     let cTasks = 0;
-    
-    studentsAssigned.forEach(student => {
+    studentsAssigned.forEach((student) => {
       if (student.tasks && Array.isArray(student.tasks)) {
         tTasks += student.tasks.length;
-        cTasks += student.tasks.filter(t => t.status === "Completed").length;
+        cTasks += student.tasks.filter((t) => t.status === "Completed").length;
       }
     });
-
-    return {
-      assignedStudents: studentsAssigned.length,
-      totalTasks: tTasks,
-      completedTasks: cTasks
-    };
+    return { assignedStudents: studentsAssigned.length, totalTasks: tTasks, completedTasks: cTasks };
   }, [specialistName]);
+
+  // ── Loading state ─────────────────────────────────────────────────────────
+  if (isPersonal && isLoading && !isProfileLoaded) {
+    return (
+      <div className="flex items-center justify-center h-64 text-muted-foreground gap-3">
+        <Loader2 className="w-5 h-5 animate-spin" />
+        <span className="text-sm">Loading your profile...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 max-w-4xl mx-auto">
@@ -108,23 +133,19 @@ export function ProfilePage() {
               <Edit className="w-4 h-4" />
             </Button>
           )}
-          <div className="relative w-32 h-32 rounded-full border-4 border-border shadow-sm overflow-hidden mb-5 group">
-            <img
-              src={profile.photo}
-              alt={profile.name}
-              className="w-full h-full object-cover bg-muted"
-            />
+          <div className="relative w-32 h-32 rounded-full border-4 border-border shadow-sm overflow-hidden mb-5 group flex items-center justify-center bg-gray-200 dark:bg-gray-800">
+            <User className="w-16 h-16 text-gray-400 dark:text-gray-500" />
             {isPersonal && (
-              <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white">
+              <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white z-10">
                 <Camera className="w-6 h-6 mb-1" />
                 <span className="text-[10px] font-medium tracking-wide">Edit</span>
                 <input type="file" accept="image/*" className="hidden" />
               </label>
             )}
           </div>
-          <h2 className="text-2xl font-bold text-foreground">{profile.name}</h2>
+          <h2 className="text-2xl font-bold text-foreground">{storeProfile.name ?? specialistName}</h2>
           <Badge variant="secondary" className="mt-2 bg-primary/10 text-primary">
-            {profile.domain}
+            {storeProfile.serviceDomain ?? "Specialist"}
           </Badge>
 
           <Separator className="my-6 w-full" />
@@ -134,14 +155,14 @@ export function ProfilePage() {
               <Building className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">Institution</p>
-                <p className="text-sm font-medium">{profile.institution}</p>
+                <p className="text-sm font-medium">{storeProfile.institutionName ?? "—"}</p>
               </div>
             </div>
             <div className="flex items-center gap-3 text-foreground">
               <Briefcase className="w-5 h-5 text-muted-foreground" />
               <div>
                 <p className="text-xs text-muted-foreground">Experience</p>
-                <p className="text-sm font-medium">{profile.experience}</p>
+                <p className="text-sm font-medium">{storeProfile.experience ?? "—"}</p>
               </div>
             </div>
           </div>
@@ -187,56 +208,59 @@ export function ProfilePage() {
               <div className="space-y-1.5">
                 <CardTitle className="text-lg flex items-center gap-2 text-foreground">
                   <Award className="w-5 h-5 text-indigo-500" /> 
-                  Service Domains
+                  Focus Areas
                 </CardTitle>
                 <CardDescription>Areas of expertise and intervention.</CardDescription>
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <div className="flex flex-wrap gap-2">
-                {profile.serviceDomains.map((domain, idx) => (
-                  <div key={idx} className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 px-3 py-2 rounded-md border border-indigo-100 dark:border-indigo-800/50 text-sm font-medium">
-                    <BookOpen className="w-4 h-4" />
-                    {domain}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Assessment Methods */}
-          <Card className="border-border bg-card text-card-foreground shadow-sm">
-            <CardHeader className="pb-3 border-b border-border/60 flex flex-row items-start justify-between space-y-0">
-              <div className="space-y-1.5">
-                <CardTitle className="text-lg flex items-center gap-2 text-foreground">
-                  <ClipboardCheck className="w-5 h-5 text-emerald-500" /> 
-                  Assessment Methods
-                </CardTitle>
-                <CardDescription>Preferred evaluation and diagnostic tools.</CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {profile.assessmentMethods.length > 0 ? (
-                <ul className="space-y-2">
-                  {profile.assessmentMethods.map((method, idx) => (
-                    <li key={idx} className="text-sm text-foreground flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                      {method}
-                    </li>
+              {(storeProfile.focusAreas ?? []).length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {storeProfile.focusAreas.map((area, idx) => (
+                    <div key={idx} className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300 px-3 py-2 rounded-md border border-indigo-100 dark:border-indigo-800/50 text-sm font-medium">
+                      <BookOpen className="w-4 h-4" />
+                      {area}
+                    </div>
                   ))}
-                </ul>
+                </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-6 text-muted-foreground border border-dashed border-border rounded-lg bg-muted/50">
-                  <GraduationCap className="w-8 h-8 mb-2 opacity-50 text-muted-foreground" />
-                  <p className="text-sm italic">No assessment methods currently specified.</p>
+                  <BookOpen className="w-8 h-8 mb-2 opacity-50" />
+                  <p className="text-sm italic">No focus areas specified yet.</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
+          {/* Service Domain Detail */}
+          <Card className="border-border bg-card text-card-foreground shadow-sm">
+            <CardHeader className="pb-3 border-b border-border/60 flex flex-row items-start justify-between space-y-0">
+              <div className="space-y-1.5">
+                <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                  <ClipboardCheck className="w-5 h-5 text-emerald-500" /> 
+                  Service Domain
+                </CardTitle>
+                <CardDescription>Primary intervention category.</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {storeProfile.serviceDomain ? (
+                <div className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 px-3 py-2 rounded-md border border-emerald-100 dark:border-emerald-800/50 text-sm font-medium w-fit">
+                  <ClipboardCheck className="w-4 h-4" />
+                  {storeProfile.serviceDomain}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-6 text-muted-foreground border border-dashed border-border rounded-lg bg-muted/50">
+                  <GraduationCap className="w-8 h-8 mb-2 opacity-50 text-muted-foreground" />
+                  <p className="text-sm italic">No service domain currently specified.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 
+      {/* Edit Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -245,27 +269,23 @@ export function ProfilePage() {
           <div className="grid gap-4 py-4 mt-2">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">Name</Label>
-              <Input id="name" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="col-span-3" />
+              <Input id="name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="domain" className="text-right">Domain</Label>
-              <Input id="domain" value={editForm.domain} onChange={e => setEditForm({...editForm, domain: e.target.value})} className="col-span-3" />
+              <Input id="domain" value={editForm.domain} onChange={(e) => setEditForm({ ...editForm, domain: e.target.value })} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="institution" className="text-right">Institution</Label>
-              <Input id="institution" value={editForm.institution} onChange={e => setEditForm({...editForm, institution: e.target.value})} className="col-span-3" />
+              <Input id="institution" value={editForm.institution} onChange={(e) => setEditForm({ ...editForm, institution: e.target.value })} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="experience" className="text-right">Experience</Label>
-              <Input id="experience" value={editForm.experience} onChange={e => setEditForm({...editForm, experience: e.target.value})} className="col-span-3" />
+              <Input id="experience" value={editForm.experience} onChange={(e) => setEditForm({ ...editForm, experience: e.target.value })} className="col-span-3" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="serviceDomains" className="text-right">Service Domains</Label>
-              <Input placeholder="Comma separated values" id="serviceDomains" value={editForm.serviceDomains} onChange={e => setEditForm({...editForm, serviceDomains: e.target.value})} className="col-span-3" />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="assessmentMethods" className="text-right">Assessments</Label>
-              <Input placeholder="Comma separated values" id="assessmentMethods" value={editForm.assessmentMethods} onChange={e => setEditForm({...editForm, assessmentMethods: e.target.value})} className="col-span-3" />
+              <Label htmlFor="serviceDomains" className="text-right">Focus Areas</Label>
+              <Input placeholder="Comma separated values" id="serviceDomains" value={editForm.serviceDomains} onChange={(e) => setEditForm({ ...editForm, serviceDomains: e.target.value })} className="col-span-3" />
             </div>
           </div>
           <DialogFooter>

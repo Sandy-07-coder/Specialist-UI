@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { FileEdit } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { DashboardPage } from "@/pages/DashboardPage";
@@ -8,15 +9,27 @@ import { StudentDetailsPage } from "@/pages/StudentDetailsPage";
 import { StudentTasksPage } from "@/pages/StudentTasksPage";
 import TasksPage from "@/pages/TasksPage";
 import { ProfilePage } from "@/pages/ProfilePage";
-import { ThemeProvider } from "@/components/theme-provider";
 import { LandingPage } from "@/pages/LandingPage";
 import { SignInPage } from "@/pages/SignInPage";
 import { SignUpPage } from "@/pages/SignUpPage";
 import { SettingsPage } from "@/pages/SettingsPage";
+import { useThemeStore } from "@/store";
 import "./App.css";
 
-// --- Dummy Pages ---
+// ── Theme Bootstrap ────────────────────────────────────────────────────────────
+// Reads the persisted theme from the Zustand store on first render
+// and applies the correct class to <html>, keeping Tailwind dark mode in sync.
+function ThemeBootstrap() {
+  const theme = useThemeStore((s) => s.theme);
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(theme);
+  }, [theme]);
+  return null;
+}
 
+// ── Placeholder ────────────────────────────────────────────────────────────────
 const PagePlaceholder = ({ title }) => (
   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
     <header>
@@ -27,8 +40,7 @@ const PagePlaceholder = ({ title }) => (
         Manage your {title.toLowerCase()} configurations and details here.
       </p>
     </header>
-    
-    {/* Minimalist content skeleton */}
+
     <div className="h-64 rounded-xl border border-dashed border-gray-300 dark:border-gray-800 mt-8 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500 bg-gray-50/50 dark:bg-gray-900/20 mx-4 sm:mx-0">
       <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-lg mb-4 flex items-center justify-center">
         <FileEdit className="w-6 h-6 text-gray-400 opacity-50" />
@@ -39,11 +51,13 @@ const PagePlaceholder = ({ title }) => (
   </div>
 );
 
-// --- App Root ---
-
+// ── App Root ───────────────────────────────────────────────────────────────────
 export default function App() {
   return (
-    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+    <>
+      {/* Applies persisted theme class to <html> without a Context wrapper */}
+      <ThemeBootstrap />
+
       <Router>
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -63,6 +77,6 @@ export default function App() {
           </Route>
         </Routes>
       </Router>
-    </ThemeProvider>
+    </>
   );
 }
