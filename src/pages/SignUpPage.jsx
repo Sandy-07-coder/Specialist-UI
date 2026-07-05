@@ -25,6 +25,19 @@ export function SignUpPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const totalSteps = 4;
 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [otp, setOtp] = useState("");
+  const [name, setName] = useState("");
+  const [institutionName, setInstitutionName] = useState("");
+  const [experience, setExperience] = useState("");
+  const [serviceDomain, setServiceDomain] = useState("");
+  const [focusAreas, setFocusAreas] = useState([]);
+  
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   const handlePhoneChange = (e) => {
     const val = e.target.value;
     setPhoneNumber(val);
@@ -46,12 +59,57 @@ export function SignUpPage() {
     }
   };
 
-  const handleNext = (e) => {
+  const handleFocusAreaChange = (area) => {
+    setFocusAreas(prev => 
+      prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area]
+    );
+  };
+
+  const handleNext = async (e) => {
     e.preventDefault();
+    setError("");
+
+    if (step === 1 && password !== confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
     if (step < totalSteps) {
       setStep(step + 1);
     } else {
-      navigate("/dashboard");
+      setIsLoading(true);
+      try {
+        const fullPhone = `${phoneDialCode}${phoneNumber.replace(/^\+\d+/, '')}`;
+        const response = await fetch("http://localhost:5000/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            password,
+            name,
+            phone: fullPhone,
+            institutionName,
+            experience: Number(experience),
+            serviceDomain,
+            focusAreas
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("user", JSON.stringify(data.user));
+          navigate("/dashboard");
+        } else {
+          setError(data.message || "Registration failed");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("An error occurred during registration. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -92,19 +150,21 @@ export function SignUpPage() {
         
         <form onSubmit={handleNext}>
           <CardContent className="space-y-4">
+            {error && <div className="text-sm font-medium text-red-500 text-center">{error}</div>}
+            
             {step === 1 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-gray-900 dark:text-gray-100">Email</Label>
-                  <Input id="email" type="email" placeholder="m@example.com" required className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" />
+                  <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="m@example.com" required className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-gray-900 dark:text-gray-100">Password</Label>
-                  <Input id="password" type="password" required className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" />
+                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password" className="text-gray-900 dark:text-gray-100">Confirm Password</Label>
-                  <Input id="confirm-password" type="password" required className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" />
+                  <Input id="confirm-password" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" />
                 </div>
               </div>
             )}
@@ -118,7 +178,7 @@ export function SignUpPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="otp" className="text-gray-900 dark:text-gray-100">Verification Code</Label>
-                  <Input id="otp" type="text" placeholder="123456" maxLength={6} className="text-center tracking-[1em] font-mono text-lg dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" required />
+                  <Input id="otp" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="123456" maxLength={6} className="text-center tracking-[1em] font-mono text-lg dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" required />
                 </div>
                 <div className="text-center">
                   <Button variant="link" type="button" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 text-sm">
@@ -153,7 +213,7 @@ export function SignUpPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-gray-900 dark:text-gray-100">Full Name</Label>
-                  <Input id="name" type="text" placeholder="Dr. Jane Doe" required className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" />
+                  <Input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Dr. Jane Doe" required className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone" className="text-gray-900 dark:text-gray-100">Phone Number</Label>
@@ -190,15 +250,15 @@ export function SignUpPage() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="inst-name" className="text-gray-900 dark:text-gray-100">Institution/Clinic Name</Label>
-                  <Input id="inst-name" type="text" placeholder="Health Center" required className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" />
+                  <Input id="inst-name" type="text" value={institutionName} onChange={(e) => setInstitutionName(e.target.value)} placeholder="Health Center" required className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="experience" className="text-gray-900 dark:text-gray-100">Years of Experience</Label>
-                  <Input id="experience" type="number" min="0" placeholder="5" required className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" />
+                  <Input id="experience" type="number" min="0" value={experience} onChange={(e) => setExperience(e.target.value)} placeholder="5" required className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-gray-900 dark:text-gray-100">Service Domain</Label>
-                  <Select required>
+                  <Select required value={serviceDomain} onValueChange={setServiceDomain}>
                     <SelectTrigger className="dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100">
                       <SelectValue placeholder="Select a domain" />
                     </SelectTrigger>
@@ -220,23 +280,22 @@ export function SignUpPage() {
                   <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">Select the primary methods you use for evaluation.</p>
                   
                   <div className="grid gap-3">
-                    {/* Simplified Checkbox UI using styling since checkbox component might not be available */}
                     <label className="flex items-start space-x-3 p-3 border dark:border-gray-800 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <input type="checkbox" className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-600" />
+                      <input type="checkbox" checked={focusAreas.includes("Autism")} onChange={() => handleFocusAreaChange("Autism")} className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-600" />
                       <div>
                         <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">Autism Spectrum Assessment tools</span>
                         <span className="block text-xs text-gray-500 dark:text-gray-400">Social communication & behavior observation</span>
                       </div>
                     </label>
                     <label className="flex items-start space-x-3 p-3 border dark:border-gray-800 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <input type="checkbox" className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-600" />
+                      <input type="checkbox" checked={focusAreas.includes("ADHD")} onChange={() => handleFocusAreaChange("ADHD")} className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-600" />
                       <div>
                         <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">ADHD Evaluation Protocol</span>
                         <span className="block text-xs text-gray-500 dark:text-gray-400">Attention, hyperactivity, and executive function</span>
                       </div>
                     </label>
                     <label className="flex items-start space-x-3 p-3 border dark:border-gray-800 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <input type="checkbox" className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-600" />
+                      <input type="checkbox" checked={focusAreas.includes("Cognitive")} onChange={() => handleFocusAreaChange("Cognitive")} className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-600" />
                       <div>
                         <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">Cognitive & Developmental</span>
                         <span className="block text-xs text-gray-500 dark:text-gray-400">Standardized developmental milestones</span>
@@ -251,12 +310,12 @@ export function SignUpPage() {
           <CardFooter className="flex flex-col space-y-4">
             <div className="flex w-full gap-3">
               {step > 1 && (
-                <Button type="button" variant="outline" className="w-full dark:bg-transparent dark:border-gray-700 dark:text-gray-100" onClick={handleBack}>
+                <Button type="button" variant="outline" className="w-full dark:bg-transparent dark:border-gray-700 dark:text-gray-100" onClick={handleBack} disabled={isLoading}>
                   Back
                 </Button>
               )}
-              <Button type="submit" className="w-full">
-                {step === totalSteps ? "Create Account" : "Next"}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? "Please wait..." : (step === totalSteps ? "Create Account" : "Next")}
               </Button>
             </div>
             
