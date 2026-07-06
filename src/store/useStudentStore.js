@@ -13,7 +13,9 @@ export const useStudentStore = create((set, get) => ({
     hasNextPage: false,
     hasPrevPage: false,
   },
+  currentStudent: null,   // holds the student being viewed on the details page
   isLoading: false,
+  isLoadingOne: false,
   isAdding: false,
   error: null,
 
@@ -47,9 +49,33 @@ export const useStudentStore = create((set, get) => ({
   },
 
   /**
+   * Fetch a single student by ID for the details page.
+   * @param {string} token  - JWT bearer token
+   * @param {string} id     - MongoDB ObjectId of the student
+   */
+  fetchStudentById: async (token, id) => {
+    set({ isLoadingOne: true, error: null, currentStudent: null });
+    try {
+      const res = await fetch(`${API_BASE}/students/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        set({ error: data.message || 'Failed to fetch student.', isLoadingOne: false });
+        return;
+      }
+
+      set({ currentStudent: data.student, isLoadingOne: false });
+    } catch (err) {
+      set({ error: 'Network error while fetching student.', isLoadingOne: false });
+    }
+  },
+
+  /**
    * Add a new student.
    * @param {string} token   - JWT bearer token
-   * @param {object} payload - { name, age, gender, diagnosis, notes, assessmentStatus }
+   * @param {object} payload - { name, dob, gender, diagnosis, notes, assessmentStatus }
    * @returns {{ success: boolean, student?: object, error?: string }}
    */
   addStudent: async (token, payload) => {
