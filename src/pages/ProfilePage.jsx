@@ -3,12 +3,12 @@ import { useParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Building, 
-  Briefcase, 
-  Award, 
-  BookOpen, 
-  ClipboardCheck, 
+import {
+  Building,
+  Briefcase,
+  Award,
+  BookOpen,
+  ClipboardCheck,
   GraduationCap,
   Users,
   ListTodo,
@@ -35,9 +35,13 @@ export function ProfilePage() {
     isLoading,
     fetchProfile,
     updateProfile,
+    uploadPhoto,
     getDisplayProfile,
   } = useUserStore();
   const token = useAuthStore((s) => s.token);
+  const profileUrl = useUserStore((s) => s.profileUrl);
+
+  const [isUploading, setIsUploading] = useState(false);
 
   // Fetch full profile on mount if it hasn't been loaded yet
   useEffect(() => {
@@ -88,6 +92,14 @@ export function ProfilePage() {
     setIsModalOpen(false);
   };
 
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    await uploadPhoto(file, token);
+    setIsUploading(false);
+  };
+
   // ── Statistics ────────────────────────────────────────────────────────────
   const { assignedStudents, totalTasks, completedTasks } = useMemo(() => {
     const studentsAssigned = studentsData.filter((s) =>
@@ -134,12 +146,22 @@ export function ProfilePage() {
             </Button>
           )}
           <div className="relative w-32 h-32 rounded-full border-4 border-border shadow-sm overflow-hidden mb-5 group flex items-center justify-center bg-gray-200 dark:bg-gray-800">
-            <User className="w-16 h-16 text-gray-400 dark:text-gray-500" />
+            {profileUrl ? (
+              <img src={profileUrl} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <User className="w-16 h-16 text-gray-400 dark:text-gray-500" />
+            )}
             {isPersonal && (
               <label className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white z-10">
-                <Camera className="w-6 h-6 mb-1" />
-                <span className="text-[10px] font-medium tracking-wide">Edit</span>
-                <input type="file" accept="image/*" className="hidden" />
+                {isUploading ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  <>
+                    <Camera className="w-6 h-6 mb-1" />
+                    <span className="text-[10px] font-medium tracking-wide">Edit</span>
+                  </>
+                )}
+                <input type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} disabled={isUploading} />
               </label>
             )}
           </div>
@@ -170,7 +192,7 @@ export function ProfilePage() {
 
         {/* Right Column - Domains & Assessments */}
         <div className="col-span-1 md:col-span-2 space-y-6">
-          
+
           {/* Key Statistics */}
           <div className="grid grid-cols-3 gap-4">
             <Card className="border-border bg-card text-card-foreground shadow-sm">
@@ -207,7 +229,7 @@ export function ProfilePage() {
             <CardHeader className="pb-3 border-b border-border/60 flex flex-row items-start justify-between space-y-0">
               <div className="space-y-1.5">
                 <CardTitle className="text-lg flex items-center gap-2 text-foreground">
-                  <Award className="w-5 h-5 text-indigo-500" /> 
+                  <Award className="w-5 h-5 text-indigo-500" />
                   Focus Areas
                 </CardTitle>
                 <CardDescription>Areas of expertise and intervention.</CardDescription>
@@ -237,7 +259,7 @@ export function ProfilePage() {
             <CardHeader className="pb-3 border-b border-border/60 flex flex-row items-start justify-between space-y-0">
               <div className="space-y-1.5">
                 <CardTitle className="text-lg flex items-center gap-2 text-foreground">
-                  <ClipboardCheck className="w-5 h-5 text-emerald-500" /> 
+                  <ClipboardCheck className="w-5 h-5 text-emerald-500" />
                   Service Domain
                 </CardTitle>
                 <CardDescription>Primary intervention category.</CardDescription>
@@ -264,28 +286,28 @@ export function ProfilePage() {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Edit Profile Information</DialogTitle>
+            <DialogTitle className="text-foreground">Edit Profile Information</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4 mt-2">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">Name</Label>
-              <Input id="name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="col-span-3" />
+              <Label htmlFor="name" className="text-right text-foreground">Name</Label>
+              <Input id="name" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} className="col-span-3 text-gray-800 dark:text-gray-200" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="domain" className="text-right">Domain</Label>
-              <Input id="domain" value={editForm.domain} onChange={(e) => setEditForm({ ...editForm, domain: e.target.value })} className="col-span-3" />
+              <Label htmlFor="domain" className="text-right text-foreground">Domain</Label>
+              <Input id="domain" value={editForm.domain} onChange={(e) => setEditForm({ ...editForm, domain: e.target.value })} className="col-span-3 text-gray-800 dark:text-gray-200" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="institution" className="text-right">Institution</Label>
-              <Input id="institution" value={editForm.institution} onChange={(e) => setEditForm({ ...editForm, institution: e.target.value })} className="col-span-3" />
+              <Label htmlFor="institution" className="text-right text-foreground">Institution</Label>
+              <Input id="institution" value={editForm.institution} onChange={(e) => setEditForm({ ...editForm, institution: e.target.value })} className="col-span-3 text-gray-800 dark:text-gray-200" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="experience" className="text-right">Experience</Label>
-              <Input id="experience" value={editForm.experience} onChange={(e) => setEditForm({ ...editForm, experience: e.target.value })} className="col-span-3" />
+              <Label htmlFor="experience" className="text-right text-foreground">Experience</Label>
+              <Input id="experience" value={editForm.experience} onChange={(e) => setEditForm({ ...editForm, experience: e.target.value })} className="col-span-3 text-gray-800 dark:text-gray-200" />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="serviceDomains" className="text-right">Focus Areas</Label>
-              <Input placeholder="Comma separated values" id="serviceDomains" value={editForm.serviceDomains} onChange={(e) => setEditForm({ ...editForm, serviceDomains: e.target.value })} className="col-span-3" />
+              <Label htmlFor="serviceDomains" className="text-right text-foreground">Focus Areas</Label>
+              <Input placeholder="Comma separated values" id="serviceDomains" value={editForm.serviceDomains} onChange={(e) => setEditForm({ ...editForm, serviceDomains: e.target.value })} className="col-span-3 text-foreground" />
             </div>
           </div>
           <DialogFooter>

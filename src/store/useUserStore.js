@@ -29,6 +29,7 @@ export const useUserStore = create(
       experience: null,
       serviceDomain: null,
       focusAreas: [],
+      profileUrl: null,
 
       // ── Integrity / Session Metadata ─────────────────────────────────
       /** True once the full profile has been fetched via fetchProfile(). */
@@ -86,8 +87,9 @@ export const useUserStore = create(
             phone: u.phone ?? null,
             institutionName: u.institutionName ?? null,
             experience: u.experience ?? null,
-            serviceDomain: u.serviceDomain ?? null,
+          serviceDomain: u.serviceDomain ?? null,
             focusAreas: u.focusAreas ?? [],
+            profileUrl: u.profileUrl ?? null,
             isProfileLoaded: true,
             lastFetchedAt: new Date().toISOString(),
             isLoading: false,
@@ -112,6 +114,38 @@ export const useUserStore = create(
           ...state,
           ...updates,
         }));
+      },
+
+      /**
+       * Upload a profile photo to Cloudinary via the backend.
+       * Updates profileUrl in the store on success.
+       *
+       * @param {File}   file  — The image File object from the file input
+       * @param {string} token — Bearer JWT from useAuthStore
+       */
+      uploadPhoto: async (file, token) => {
+        if (!file || !token) return { success: false };
+        set({ isLoading: true, error: null });
+        try {
+          const formData = new FormData();
+          formData.append('photo', file);
+          const response = await fetch(`${API_BASE}/auth/upload-photo`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            set({ error: data.message || 'Upload failed', isLoading: false });
+            return { success: false };
+          }
+          set({ profileUrl: data.profileUrl, isLoading: false, error: null });
+          return { success: true, profileUrl: data.profileUrl };
+        } catch (err) {
+          const message = 'Could not upload photo. Please try again.';
+          set({ error: message, isLoading: false });
+          return { success: false, error: message };
+        }
       },
 
       /**
@@ -145,6 +179,7 @@ export const useUserStore = create(
           experience: null,
           serviceDomain: null,
           focusAreas: [],
+          profileUrl: null,
           isProfileLoaded: false,
           lastFetchedAt: null,
           isLoading: false,
@@ -167,6 +202,7 @@ export const useUserStore = create(
         experience: state.experience,
         serviceDomain: state.serviceDomain,
         focusAreas: state.focusAreas,
+        profileUrl: state.profileUrl,
         isProfileLoaded: state.isProfileLoaded,
         lastFetchedAt: state.lastFetchedAt,
       }),
