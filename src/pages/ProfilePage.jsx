@@ -24,6 +24,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { studentsData } from "@/data/students";
 import { useUserStore, useAuthStore } from "@/store";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 
 export function ProfilePage() {
   const { name } = useParams();
@@ -136,6 +137,9 @@ export function ProfilePage() {
           {name ? `Professional profile of ${specialistName}` : "Your professional snapshot"}
         </p>
       </header>
+
+      {/* ── Email verification warning (personal profile only) ── */}
+      {isPersonal && <EmailVerificationBanner />}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         {/* Left Column - Essential Info */}

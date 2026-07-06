@@ -30,6 +30,7 @@ export const useUserStore = create(
       serviceDomain: null,
       focusAreas: [],
       profileUrl: null,
+      isEmailVerified: false,
 
       // ── Integrity / Session Metadata ─────────────────────────────────
       /** True once the full profile has been fetched via fetchProfile(). */
@@ -87,9 +88,10 @@ export const useUserStore = create(
             phone: u.phone ?? null,
             institutionName: u.institutionName ?? null,
             experience: u.experience ?? null,
-          serviceDomain: u.serviceDomain ?? null,
+            serviceDomain: u.serviceDomain ?? null,
             focusAreas: u.focusAreas ?? [],
             profileUrl: u.profileUrl ?? null,
+            isEmailVerified: u.isEmailVerified ?? false,
             isProfileLoaded: true,
             lastFetchedAt: new Date().toISOString(),
             isLoading: false,
@@ -180,6 +182,7 @@ export const useUserStore = create(
           serviceDomain: null,
           focusAreas: [],
           profileUrl: null,
+          isEmailVerified: false,
           isProfileLoaded: false,
           lastFetchedAt: null,
           isLoading: false,
@@ -203,6 +206,7 @@ export const useUserStore = create(
         serviceDomain: state.serviceDomain,
         focusAreas: state.focusAreas,
         profileUrl: state.profileUrl,
+        isEmailVerified: state.isEmailVerified,
         isProfileLoaded: state.isProfileLoaded,
         lastFetchedAt: state.lastFetchedAt,
       }),
