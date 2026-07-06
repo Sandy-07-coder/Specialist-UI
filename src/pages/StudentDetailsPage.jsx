@@ -1,7 +1,20 @@
-import React, { useMemo, useEffect, useState } from "react";
-import { useParams, NavLink, useLocation } from "react-router-dom";
-import { studentsData } from "@/data/students";
-import { ArrowLeft, User, Activity, AlertCircle, FileText, CheckCircle2, Clock, ChevronDown, ChevronUp } from "lucide-react";
+import { useEffect } from "react";
+import { useParams, NavLink } from "react-router-dom";
+import {
+  ArrowLeft,
+  User,
+  FileText,
+  ClipboardList,
+  AlertCircle,
+  Loader2,
+  CalendarDays,
+  Venus,
+  Mars,
+  CircleUser,
+  CheckCircle2,
+  Clock,
+  BadgeAlert,
+} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -11,120 +24,132 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { useStudentStore } from "@/store/useStudentStore";
+import { useAuthStore } from "@/store";
 
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Pie,
-  PieChart,
-  Label,
-  XAxis,
-} from "recharts";
+// ── Helpers ────────────────────────────────────────────────────────────────────
 
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-} from "@/components/ui/chart";
+/** Format an ISO date string → dd/mm/yyyy */
+function formatDob(isoString) {
+  if (!isoString) return "—";
+  return new Date(isoString).toLocaleDateString("en-GB");
+}
 
-const TaskItem = ({ task }) => {
-  const [expanded, setExpanded] = useState(false);
-  const isCompleted = task.status === "Completed";
+/** Compute age in years from an ISO date string */
+function computeAge(isoString) {
+  if (!isoString) return null;
+  const dob = new Date(isoString);
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  return age;
+}
 
+/** Gender icon component */
+function GenderIcon({ gender }) {
+  if (gender === "Male") return <Mars className="w-4 h-4 text-sky-500" />;
+  if (gender === "Female") return <Venus className="w-4 h-4 text-pink-500" />;
+  return <CircleUser className="w-4 h-4 text-muted-foreground" />;
+}
+
+/** Reusable info row used inside the profile card */
+function InfoRow({ icon, label, value }) {
   return (
-    <div className="group border border-border/50 rounded-md p-3 bg-muted/40 hover:bg-accent hover:text-accent-foreground transition-colors">
-      <div 
-        className="flex items-center justify-between cursor-pointer" 
-        onClick={() => setExpanded(!expanded)}
-      >
-        <div className="flex items-center gap-3">
-          {isCompleted ? (
-            <CheckCircle2 className="h-5 w-5 text-green-500 group-hover:text-white dark:group-hover:text-white transition-colors" />
-          ) : (
-            <Clock className="h-5 w-5 text-orange-500 group-hover:text-white dark:group-hover:text-white transition-colors" />
-          )}
-          <span className={`font-medium text-sm group-hover:text-accent-foreground dark:group-hover:text-accent-foreground transition-colors ${isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
-            {task.title}
-          </span>
-          <Badge variant={isCompleted ? "outline" : "default"} className={`ml-2 text-xs font-normal border-transparent group-hover:bg-white/20 dark:group-hover:bg-white/20 group-hover:text-white dark:group-hover:text-white transition-colors ${isCompleted ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'}`}>
-            {task.status || "Pending"}
-          </Badge>
-        </div>
-        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-accent-foreground dark:group-hover:text-accent-foreground transition-colors">
-          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </Button>
+    <div className="flex items-start gap-3">
+      <div className="mt-0.5 shrink-0 text-muted-foreground">{icon}</div>
+      <div>
+        <p className="text-xs text-muted-foreground leading-none mb-1">{label}</p>
+        <p className="text-sm font-medium text-foreground">{value || "—"}</p>
       </div>
-      {expanded && (
-        <div className="mt-3 ml-8 text-sm text-muted-foreground group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90 whitespace-pre-wrap pl-3 border-l-2 border-gray-300 dark:border-gray-600 group-hover:border-white/50 dark:group-hover:border-white/50 transition-colors">
-          {task.description}
-        </div>
-      )}
     </div>
   );
-};
+}
 
+// ── Loading skeleton ───────────────────────────────────────────────────────────
+function ProfileSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="h-80 rounded-xl bg-muted" />
+        <div className="lg:col-span-2 h-80 rounded-xl bg-muted" />
+      </div>
+      <div className="h-40 rounded-xl bg-muted" />
+      <div className="h-32 rounded-xl bg-muted" />
+    </div>
+  );
+}
+
+// ── Main Page ──────────────────────────────────────────────────────────────────
 export function StudentDetailsPage() {
   const { id } = useParams();
-  const location = useLocation();
-  const student = useMemo(() => studentsData.find(s => s.id === id), [id]);
+  const { token } = useAuthStore();
+  const {
+    currentStudent: student,
+    isLoadingOne,
+    error,
+    fetchStudentById,
+  } = useStudentStore();
 
   useEffect(() => {
-    if (location.search.includes("tab=tasks")) {
-      const taskSection = document.getElementById("assigned-tasks");
-      if (taskSection) {
-        taskSection.scrollIntoView({ behavior: "smooth" });
-      }
+    if (token && id) {
+      fetchStudentById(token, id);
     }
-  }, [location.search]);
+  }, [token, id, fetchStudentById]);
 
-  if (!student) {
+  // ── Loading ────────────────────────────────────────────────────────────────
+  if (isLoadingOne) {
     return (
-      <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-in fade-in zoom-in duration-500">
-        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h2 className="text-2xl font-bold text-foreground">Student Not Found</h2>
-        <p className="text-muted-foreground mt-2 mb-6">
-          The student you are looking for does not exist or has been removed.
+      <div className="space-y-6 animate-in fade-in duration-300">
+        <div className="flex items-center gap-4">
+          <NavLink
+            to="/students"
+            className="p-2 border border-border rounded-full hover:bg-accent transition text-muted-foreground"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </NavLink>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Loader2 className="w-5 h-5 animate-spin text-primary" />
+            <span className="text-sm">Loading student profile…</span>
+          </div>
+        </div>
+        <ProfileSkeleton />
+      </div>
+    );
+  }
+
+  // ── Error / Not Found ──────────────────────────────────────────────────────
+  if (error || !student) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center animate-in fade-in zoom-in duration-500">
+        <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+          <AlertCircle className="w-8 h-8 text-destructive" />
+        </div>
+        <h2 className="text-2xl font-bold text-foreground">
+          {error || "Student Not Found"}
+        </h2>
+        <p className="text-muted-foreground mt-2 mb-6 max-w-sm">
+          The student profile you're looking for doesn't exist or you don't have
+          access to it.
         </p>
         <NavLink
           to="/students"
-          className="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 text-sm font-medium shadow"
+          className="inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 px-5 py-2.5 text-sm font-medium shadow transition-all"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" /> Go Back to Students
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Students
         </NavLink>
       </div>
     );
   }
 
-  // --- Task History Chart Config ---
-  const taskChartConfig = {
-    tasks: {
-      label: "Tasks Completed",
-      color: "hsl(var(--chart-1))",
-    },
-  };
-
-  // --- Mood History Pie Config ---
-  const moodChartConfig = {
-    Happy: { label: "Happy", color: "hsl(var(--chart-1))" },
-    Sad: { label: "Sad", color: "hsl(var(--chart-2))" },
-    Overwhelmed: { label: "Overwhelmed", color: "hsl(var(--chart-3))" },
-    Angry: { label: "Angry", color: "hsl(var(--chart-4))" },
-    Tired: { label: "Tired", color: "hsl(var(--chart-5))" },
-    Anxious: { label: "Anxious", color: "hsl(var(--chart-2))" },
-  };
-
-  const moodData = student.mood_history.map((m) => ({
-    ...m,
-    fill: `var(--color-${m.mood})`
-  }));
+  const age = computeAge(student.dob);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-12 w-full max-w-7xl mx-auto">
-      <header className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+
+      {/* ── Page Header ──────────────────────────────────────────────────────── */}
+      <header className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div className="flex items-center gap-4">
           <NavLink
             to="/students"
@@ -133,204 +158,208 @@ export function StudentDetailsPage() {
             <ArrowLeft className="w-5 h-5" />
           </NavLink>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight flex items-center gap-3">
-              Student Details
+            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
+              {student.name}
             </h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Student Profile</p>
           </div>
+        </div>
+
+        {/* Assessment status pill */}
+        <div className="shrink-0">
+          {student.assessmentStatus === "completed" ? (
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+              <CheckCircle2 className="w-4 h-4" />
+              Assessment Completed
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+              <Clock className="w-4 h-4" />
+              Assessment Pending
+            </span>
+          )}
         </div>
       </header>
 
-      {/* Top Section: Profile info */}
+      {/* ── Top Grid: Profile Card + Right Column ────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Col: Main Portrait & Basic Info */}
-        <Card className="col-span-1 border-border bg-card text-card-foreground/50 shadow-sm">
-          <CardContent className="pt-6 flex flex-col items-center text-center">
-            <img 
-              src={student.image} 
-              alt={student.name} 
-              className="w-32 h-32 rounded-full object-cover border-4 border-border shadow-sm"
-            />
-            <h2 className="mt-4 text-2xl font-bold text-foreground">{student.name}</h2>
-            <p className="text-muted-foreground font-medium">Age: {student.age} yrs</p>
-            
-            <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <Badge variant="secondary" className="bg-primary/10 text-primary font-medium tracking-wide">
-                {student.diagnosis}
-              </Badge>
-              <Badge variant="outline" className={`${student.support_level === 'High' ? 'border-red-200 text-red-700 bg-red-50 dark:border-red-900 dark:text-red-400 dark:bg-red-500/10' : student.support_level === 'Medium' ? 'border-orange-200 text-orange-700 bg-orange-50 dark:border-orange-900 dark:text-orange-400 dark:bg-orange-500/10' : 'border-green-200 text-green-700 bg-green-50 dark:border-green-900 dark:text-green-400 dark:bg-green-500/10'}`}>
-                {student.support_level} Support
-              </Badge>
-            </div>
-            
-            <Separator className="my-6" />
 
-            <div className="w-full text-left space-y-4">
-              <div>
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
-                  <User className="w-4 h-4 text-muted-foreground" /> Assigned Specialists
-                </h4>
-                <div className="flex flex-col gap-2">
-                  {student.assigned_specialists.map(sp => (
-                    <NavLink 
-                      key={sp} 
-                      to={`/specialists/${encodeURIComponent(sp)}`}
-                      className="text-sm font-semibold text-green-600 dark:text-green-400 bg-muted/80 p-2 rounded-md border border-border/50 hover:bg-green-50 dark:hover:bg-green-900/20 hover:border-green-200 dark:hover:border-green-800 transition-colors w-full text-left inline-block"
-                    >
-                      {sp}
-                    </NavLink>
-                  ))}
-                </div>
+        {/* Left: Profile Info Card */}
+        <Card className="col-span-1 border-border bg-card shadow-sm">
+          <CardContent className="pt-6">
+            {/* Avatar */}
+            <div className="flex flex-col items-center text-center mb-6">
+              <div className="w-24 h-24 rounded-full bg-primary/10 border-4 border-border flex items-center justify-center shadow-sm mb-4">
+                <span className="text-3xl font-bold text-primary select-none">
+                  {student.name.charAt(0).toUpperCase()}
+                </span>
               </div>
-              
-              <div>
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-2 mb-2">
-                  <CheckCircle2 className="w-4 h-4 text-muted-foreground" /> Overall Completion
-                </h4>
-                <div className="flex items-center gap-3">
-                  <div className="w-full bg-muted rounded-full h-2">
-                    <div 
-                      className="bg-primary h-2 rounded-full" 
-                      style={{ width: student.taskCompletion }}
-                    />
-                  </div>
-                  <span className="text-sm font-medium text-foreground">{student.taskCompletion}</span>
-                </div>
+              <h2 className="text-xl font-bold text-foreground">{student.name}</h2>
+              {age !== null && (
+                <p className="text-sm text-muted-foreground mt-1">{age} years old</p>
+              )}
+              <div className="mt-3">
+                <Badge className="bg-primary/10 text-primary border-primary/20 font-medium">
+                  {student.diagnosis}
+                </Badge>
               </div>
+            </div>
+
+            <Separator className="mb-6" />
+
+            {/* Detail Rows */}
+            <div className="space-y-4">
+              <InfoRow
+                icon={<CalendarDays className="w-4 h-4" />}
+                label="Date of Birth"
+                value={formatDob(student.dob)}
+              />
+              <InfoRow
+                icon={<GenderIcon gender={student.gender} />}
+                label="Gender"
+                value={student.gender}
+              />
+              <InfoRow
+                icon={<BadgeAlert className="w-4 h-4" />}
+                label="Diagnosis"
+                value={student.diagnosis}
+              />
+              <InfoRow
+                icon={<CalendarDays className="w-4 h-4" />}
+                label="Registered On"
+                value={new Date(student.createdAt).toLocaleDateString("en-GB")}
+              />
             </div>
           </CardContent>
         </Card>
 
-        {/* Right Col: Assigned Tasks */}
-        <Card id="assigned-tasks" className="col-span-1 lg:col-span-2 border-border bg-card text-card-foreground/50 shadow-sm flex flex-col justify-center scroll-mt-6">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-muted-foreground" /> Assigned Tasks
+        {/* Right: Notes + Assessment */}
+        <div className="col-span-1 lg:col-span-2 flex flex-col gap-6">
+
+          {/* Specialist Notes */}
+          <Card className="flex-1 border-border bg-card shadow-sm">
+            <CardHeader className="border-b border-border pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <FileText className="w-4 h-4 text-muted-foreground" />
+                Specialist Notes
               </CardTitle>
-              <CardDescription className="mt-1">All current and past tasks assigned to this student</CardDescription>
-            </div>
-            <Badge variant="secondary" className="bg-muted text-foreground font-medium">
-              {student.tasks?.length || 0} Tasks Total
-            </Badge>
-          </CardHeader>
-          <CardContent className="pt-6 overflow-y-auto max-h-[300px]">
-            {student.tasks && student.tasks.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {student.tasks.map(task => (
-                  <TaskItem key={task.id} task={task} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground italic">
-                No tasks are currently assigned to this student.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              <CardDescription>Observations and context recorded at registration</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-5">
+              {student.notes && student.notes.trim() ? (
+                <div className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 p-4 rounded-xl">
+                  <p className="text-foreground leading-relaxed italic border-l-4 border-amber-300 dark:border-amber-700 pl-4 py-1">
+                    "{student.notes}"
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+                  <FileText className="w-8 h-8 opacity-30 mb-2" />
+                  <p className="text-sm italic">No notes recorded for this student.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Assessment Status Card */}
+          <Card className="border-border bg-card shadow-sm">
+            <CardHeader className="border-b border-border pb-4">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <ClipboardList className="w-4 h-4 text-muted-foreground" />
+                Assessment
+              </CardTitle>
+              <CardDescription>Current assessment status for this student</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-5">
+              {student.assessmentStatus === "completed" ? (
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                  <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-emerald-700 dark:text-emerald-300">
+                      Assessment Completed
+                    </p>
+                    <p className="text-sm text-emerald-600/80 dark:text-emerald-400/70 mt-0.5">
+                      This student has completed their assessment test.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                  <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
+                    <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-amber-700 dark:text-amber-300">
+                      Assessment Pending
+                    </p>
+                    <p className="text-sm text-amber-600/80 dark:text-amber-400/70 mt-0.5">
+                      The assessment has not been completed yet.
+                    </p>
+                  </div>
+                  <NavLink
+                    to={`/assessment?studentId=${student._id}`}
+                    className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium transition-colors"
+                  >
+                    <ClipboardList className="w-4 h-4" />
+                    Start Test
+                  </NavLink>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+        </div>
       </div>
 
-      {/* Middle Section: Specialist Notes */}
-      <Card className="border-border bg-card text-card-foreground/50 shadow-sm w-full min-h-[150px]">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-muted-foreground outline-none" /> Specialist Notes
+      {/* ── Bottom: Progress Overview ─────────────────────────────────────────── */}
+      <Card className="border-border bg-card shadow-sm">
+        <CardHeader className="border-b border-border pb-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <User className="w-4 h-4 text-muted-foreground" />
+            Progress Overview
           </CardTitle>
-          <CardDescription>Current observations and recommendations</CardDescription>
+          <CardDescription>
+            Task completion and mood tracking — populated as activity is recorded
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 p-4 rounded-xl h-full">
-            <p className="text-foreground leading-relaxed italic border-l-4 border-amber-300 dark:border-amber-700 pl-4 py-1">
-              "{student.specialist_notes}"
-            </p>
+        <CardContent className="pt-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Task Completion */}
+            <div className="p-4 rounded-xl bg-muted/50 border border-border">
+              <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">
+                Task Completion
+              </p>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 bg-muted rounded-full h-2">
+                  <div
+                    className="bg-primary h-2 rounded-full transition-all"
+                    style={{ width: student.taskCompletion || "0%" }}
+                  />
+                </div>
+                <span className="text-sm font-semibold text-foreground shrink-0">
+                  {student.taskCompletion || "0%"}
+                </span>
+              </div>
+            </div>
+
+            {/* Mood */}
+            <div className="p-4 rounded-xl bg-muted/50 border border-border">
+              <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">
+                Last Recorded Mood
+              </p>
+              <p className="text-sm font-semibold text-foreground">
+                {student.mood
+                  ? student.mood
+                  : <span className="italic font-normal text-muted-foreground">Not recorded yet</span>
+                }
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Bottom Section: Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        
-        {/* Task History (Bar Chart) */}
-        <Card className="flex flex-col shadow-sm border-border">
-          <CardHeader className="items-center pb-2">
-            <CardTitle className="text-lg">Task History (7 Days)</CardTitle>
-            <CardDescription>Daily task completion volume</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 pb-0">
-            <ChartContainer config={taskChartConfig} className="mx-auto aspect-[4/3] w-full mt-4">
-              <BarChart accessibilityLayer data={student.task_history} margin={{ left: 12, right: 12 }}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="day"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                  tickFormatter={(value) => value.slice(0, 3)}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent hideLabel />}
-                />
-                <Bar dataKey="tasks" fill="var(--color-tasks)" radius={8} />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-
-        {/* Mood History (Pie Chart) */}
-        <Card className="flex flex-col shadow-sm border-border">
-          <CardHeader className="items-center pb-0">
-            <CardTitle className="text-lg">Mood History</CardTitle>
-            <CardDescription>Distribution of states over time</CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1 pb-0">
-            <ChartContainer config={moodChartConfig} className="mx-auto aspect-square max-h-[250px] w-full">
-              <PieChart>
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent nameKey="mood" />}
-                />
-                <Pie
-                  data={moodData}
-                  dataKey="value"
-                  nameKey="mood"
-                  innerRadius={60}
-                  strokeWidth={5}
-                >
-                  <Label
-                    content={({ viewBox }) => {
-                      if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                        return (
-                          <text
-                            x={viewBox.cx}
-                            y={viewBox.cy}
-                            textAnchor="middle"
-                            dominantBaseline="middle"
-                          >
-                            <tspan
-                              x={viewBox.cx}
-                              y={viewBox.cy}
-                              className="fill-foreground text-2xl font-bold"
-                            >
-                              {student.mood}
-                            </tspan>
-                            <tspan
-                              x={viewBox.cx}
-                              y={(viewBox.cy || 0) + 24}
-                              className="fill-muted-foreground text-xs"
-                            >
-                              Current Mood
-                            </tspan>
-                          </text>
-                        )
-                      }
-                    }}
-                  />
-                </Pie>
-              </PieChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 }
