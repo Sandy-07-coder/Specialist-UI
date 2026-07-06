@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useAuthStore } from "@/store";
+import { EmailVerificationModal } from "@/components/EmailVerificationModal";
 
 const countryList = [
   { code: "US", flag: "🇺🇸", dialCode: "+1" },
@@ -26,25 +26,29 @@ export function SignUpPage() {
   const [profileImage, setProfileImage] = useState(null);
   const [phoneDialCode, setPhoneDialCode] = useState("+1");
   const [phoneNumber, setPhoneNumber] = useState("");
-  const totalSteps = 4;
+  // Step 2 (OTP) removed — now 3 steps total
+  const totalSteps = 3;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [otp, setOtp] = useState("");
   const [name, setName] = useState("");
   const [institutionName, setInstitutionName] = useState("");
   const [experience, setExperience] = useState("");
   const [serviceDomain, setServiceDomain] = useState("");
   const [focusAreas, setFocusAreas] = useState([]);
-  
+
   // localError is only for client-side validation (password mismatch, etc.)
   const [localError, setLocalError] = useState("");
+
+  // Email verification modal state
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   const handlePhoneChange = (e) => {
     const val = e.target.value;
     setPhoneNumber(val);
-    
+
     // Auto-detect country code from input if they paste it
     for (const country of countryList) {
       if (val.startsWith(country.dialCode) && val !== country.dialCode && country.dialCode !== "+1") {
@@ -63,7 +67,7 @@ export function SignUpPage() {
   };
 
   const handleFocusAreaChange = (area) => {
-    setFocusAreas(prev => 
+    setFocusAreas(prev =>
       prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area]
     );
   };
@@ -93,7 +97,9 @@ export function SignUpPage() {
         focusAreas,
       });
       if (result.success) {
-        navigate("/dashboard");
+        // Show email verification modal before going to dashboard
+        setRegisteredEmail(email);
+        setShowVerifyModal(true);
       }
     }
   };
@@ -104,21 +110,32 @@ export function SignUpPage() {
     }
   };
 
+  const handleVerified = () => {
+    setShowVerifyModal(false);
+    navigate("/dashboard");
+  };
+
+  const handleSkipVerification = () => {
+    setShowVerifyModal(false);
+    navigate("/dashboard");
+  };
+
+  const stepLabel = step === 1 ? 'Account Details' : step === 2 ? 'Professional Info' : 'Assessment Setup';
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
       <div className="absolute top-4 right-4 sm:top-8 sm:right-8">
         <ThemeToggle />
       </div>
+
       {/* Horizontal Progress Bar */}
       <div className="w-full max-w-md mb-8">
         <div className="flex justify-between mb-2">
           <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Step {step} of {totalSteps}</span>
-          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
-            {step === 1 ? 'Account Details' : step === 2 ? 'Email Verification' : step === 3 ? 'Professional Info' : 'Assessment Setup'}
-          </span>
+          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">{stepLabel}</span>
         </div>
         <div className="w-full bg-white dark:bg-gray-800 rounded-full h-2.5 shadow-sm border border-gray-100 dark:border-gray-700 flex overflow-hidden">
-          <div className={`h-full bg-indigo-600 transition-all duration-300 ${step === 1 ? 'w-1/4' : step === 2 ? 'w-2/4' : step === 3 ? 'w-3/4' : 'w-full'}`}></div>
+          <div className={`h-full bg-indigo-600 transition-all duration-300 ${step === 1 ? 'w-1/3' : step === 2 ? 'w-2/3' : 'w-full'}`}></div>
         </div>
       </div>
 
@@ -127,18 +144,18 @@ export function SignUpPage() {
           <CardTitle className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100">Create Account</CardTitle>
           <CardDescription className="text-center text-gray-500 dark:text-gray-400">
             {step === 1 && "Set up your login credentials"}
-            {step === 2 && "Verify your email address"}
-            {step === 3 && "Tell us about your professional background"}
-            {step === 4 && "Configure your assessment tools"}
+            {step === 2 && "Tell us about your professional background"}
+            {step === 3 && "Configure your assessment tools"}
           </CardDescription>
         </CardHeader>
-        
+
         <form onSubmit={handleNext}>
           <CardContent className="space-y-4">
             {(localError || error) && (
               <div className="text-sm font-medium text-red-500 text-center">{localError || error}</div>
             )}
-            
+
+            {/* ── Step 1: Account Details ── */}
             {step === 1 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
                 <div className="space-y-2">
@@ -156,26 +173,8 @@ export function SignUpPage() {
               </div>
             )}
 
+            {/* ── Step 2: Professional Info (was step 3) ── */}
             {step === 2 && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
-                <div className="text-center mb-6">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    We've sent a 6-digit verification code to your email.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="otp" className="text-gray-900 dark:text-gray-100">Verification Code</Label>
-                  <Input id="otp" type="text" value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="123456" maxLength={6} className="text-center tracking-[1em] font-mono text-lg dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" required />
-                </div>
-                <div className="text-center">
-                  <Button variant="link" type="button" className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300 text-sm">
-                    Resend Code
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {step === 3 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
                 <div className="flex justify-center mb-6">
                   <div className="relative w-24 h-24">
@@ -188,11 +187,11 @@ export function SignUpPage() {
                     </div>
                     <label htmlFor="photo-upload" className="absolute bottom-0 right-0 p-1.5 bg-indigo-600 rounded-full text-white cursor-pointer hover:bg-indigo-700 transition-colors shadow-sm">
                       <Camera className="w-4 h-4" />
-                      <input 
-                        id="photo-upload" 
-                        type="file" 
-                        accept="image/*" 
-                        className="hidden" 
+                      <input
+                        id="photo-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
                         onChange={handleImageChange}
                       />
                     </label>
@@ -224,14 +223,14 @@ export function SignUpPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Input 
-                      id="phone" 
-                      type="tel" 
+                    <Input
+                      id="phone"
+                      type="tel"
                       value={phoneNumber}
                       onChange={handlePhoneChange}
-                      placeholder="(555) 000-0000" 
-                      required 
-                      className="flex-1 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100" 
+                      placeholder="(555) 000-0000"
+                      required
+                      className="flex-1 dark:bg-gray-900 dark:border-gray-800 dark:text-gray-100"
                     />
                   </div>
                 </div>
@@ -260,18 +259,19 @@ export function SignUpPage() {
               </div>
             )}
 
-            {step === 4 && (
+            {/* ── Step 3: Assessment Setup (was step 4) ── */}
+            {step === 3 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-2">
                 <div className="space-y-4">
                   <Label className="text-base text-gray-900 dark:text-gray-100">Focus Assessment Areas</Label>
                   <p className="text-sm text-gray-500 dark:text-gray-400 font-normal">Select the primary methods you use for evaluation.</p>
-                  
+
                   <div className="grid gap-3">
                     <label className="flex items-start space-x-3 p-3 border dark:border-gray-800 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       <input type="checkbox" checked={focusAreas.includes("Autism")} onChange={() => handleFocusAreaChange("Autism")} className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-600" />
                       <div>
                         <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">Autism Spectrum Assessment tools</span>
-                        <span className="block text-xs text-gray-500 dark:text-gray-400">Social communication & behavior observation</span>
+                        <span className="block text-xs text-gray-500 dark:text-gray-400">Social communication &amp; behavior observation</span>
                       </div>
                     </label>
                     <label className="flex items-start space-x-3 p-3 border dark:border-gray-800 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50">
@@ -284,7 +284,7 @@ export function SignUpPage() {
                     <label className="flex items-start space-x-3 p-3 border dark:border-gray-800 rounded-md cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       <input type="checkbox" checked={focusAreas.includes("Cognitive")} onChange={() => handleFocusAreaChange("Cognitive")} className="mt-1 h-4 w-4 rounded border-gray-300 dark:border-gray-700 text-indigo-600 focus:ring-indigo-600" />
                       <div>
-                        <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">Cognitive & Developmental</span>
+                        <span className="block text-sm font-medium text-gray-900 dark:text-gray-100">Cognitive &amp; Developmental</span>
                         <span className="block text-xs text-gray-500 dark:text-gray-400">Standardized developmental milestones</span>
                       </div>
                     </label>
@@ -293,7 +293,7 @@ export function SignUpPage() {
               </div>
             )}
           </CardContent>
-          
+
           <CardFooter className="flex flex-col space-y-4">
             <div className="flex w-full gap-3">
               {step > 1 && (
@@ -305,7 +305,7 @@ export function SignUpPage() {
                 {isLoading ? "Please wait..." : (step === totalSteps ? "Create Account" : "Next")}
               </Button>
             </div>
-            
+
             {step === 1 && (
               <div className="text-sm text-center text-gray-500 dark:text-gray-400 w-full">
                 Already have an account?{" "}
@@ -317,6 +317,15 @@ export function SignUpPage() {
           </CardFooter>
         </form>
       </Card>
+
+      {/* ── Email Verification Modal ── */}
+      {showVerifyModal && (
+        <EmailVerificationModal
+          email={registeredEmail}
+          onVerified={handleVerified}
+          onSkip={handleSkipVerification}
+        />
+      )}
     </div>
   );
 }
