@@ -24,11 +24,6 @@ export function EmailVerificationModal({ email, onVerified, onSkip }) {
   const inputRefs = useRef([]);
   const timerRef = useRef(null);
 
-  // Auto-send OTP on mount
-  useEffect(() => {
-    handleSendOtp();
-    return () => clearInterval(timerRef.current);
-  }, []);
 
   const startCooldown = () => {
     setCooldown(RESEND_COOLDOWN);
@@ -43,7 +38,52 @@ export function EmailVerificationModal({ email, onVerified, onSkip }) {
     }, 1000);
   };
 
+  // Guard against React StrictMode double-fire: only one real send per mount.
+  const hasSentRef = useRef(false);
+
+  // Auto-send OTP on mount — aborted on cleanup so StrictMode's fake unmount
+  // cancels the in-flight request before it writes to the DB.
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const autoSend = async () => {
+      if (hasSentRef.current) return;
+      hasSentRef.current = true; // ← set synchronously BEFORE the await, so the
+                                  //   StrictMode re-fire sees true and bails out
+      setSendStatus("sending");
+      setMessage("");
+      try {
+        const res = await fetch(`${API_BASE}/auth/send-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+          signal: controller.signal,
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || "Failed to send OTP");
+        setSendStatus("sent");
+        startCooldown();
+      } catch (err) {
+        if (err.name === "AbortError") {
+          hasSentRef.current = false; // reset so a real retry can work
+          return;
+        }
+        hasSentRef.current = false; // reset on error so user can resend
+        setSendStatus("error");
+        setMessage(err.message || "Could not send OTP. Please try again.");
+      }
+    };
+
+    autoSend();
+
+    return () => {
+      controller.abort();
+      clearInterval(timerRef.current);
+    };
+  }, []);
+
   const handleSendOtp = async () => {
+    hasSentRef.current = false; // allow a fresh send on manual resend
     setSendStatus("sending");
     setMessage("");
     try {
@@ -54,6 +94,7 @@ export function EmailVerificationModal({ email, onVerified, onSkip }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to send OTP");
+      hasSentRef.current = true;
       setSendStatus("sent");
       startCooldown();
     } catch (err) {
