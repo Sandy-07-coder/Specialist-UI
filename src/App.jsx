@@ -14,6 +14,7 @@ import { SignInPage } from "@/pages/SignInPage";
 import { SignUpPage } from "@/pages/SignUpPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { AssessmentPage } from "@/pages/AssessmentPage";
+import { ISAAAssessmentPage } from "@/pages/ISAAAssessmentPage";
 import { useThemeStore } from "@/store";
 import "./App.css";
 
@@ -73,6 +74,7 @@ export default function App() {
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/specialists/:name" element={<ProfilePage />} />
+            <Route path="/assessment/isaa" element={<ISAAAssessmentPage />} />
             <Route path="/assessment" element={<AssessmentPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
