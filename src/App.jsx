@@ -13,6 +13,7 @@ import { LandingPage } from "@/pages/LandingPage";
 import { SignInPage } from "@/pages/SignInPage";
 import { SignUpPage } from "@/pages/SignUpPage";
 import { SettingsPage } from "@/pages/SettingsPage";
+import { AssessmentPage } from "@/pages/AssessmentPage";
 import { useThemeStore } from "@/store";
 import "./App.css";
 
@@ -72,7 +73,7 @@ export default function App() {
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/specialists/:name" element={<ProfilePage />} />
-            <Route path="/assessment" element={<PagePlaceholder title="Assessment" />} />
+            <Route path="/assessment" element={<AssessmentPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Route>
         </Routes>
