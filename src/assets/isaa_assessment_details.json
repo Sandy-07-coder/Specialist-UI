@@ -1,0 +1,285 @@
+{
+    "scale_info": {
+        "title": "Indian Scale for Assessment of Autism (ISAA)",
+        "institution": "National Institute for the Mentally Handicapped",
+        "ministry": "Ministry of Social Justice & Empowerment, Govt. of India",
+        "iso_certification": "ISO 9001:2000 Institution",
+        "location": "Manovikas Nagar, Secunderabad - 500 009"
+    },
+    "form_details": [
+        {
+            "field_name": "Name of the child",
+            "type": "text"
+        },
+        {
+            "field_name": "Gender",
+            "type": "text"
+        },
+        {
+            "field_name": "Date",
+            "type": "date"
+        },
+        {
+            "field_name": "Age",
+            "type": "text"
+        },
+        {
+            "field_name": "Examiner",
+            "type": "text"
+        },
+        {
+            "field_name": "D.O.B",
+            "type": "date"
+        }
+    ],
+    "scoring_guidelines": {
+        "directions": "Below are given 40 statements which are divided under six domains, please tick mark the appropriate rating for each item of the scale by observing the child and by interviewing the parents in order to assess Autism",
+        "options": [
+            {
+                "score": 1,
+                "label": "Rarely",
+                "percentage": "Upto 20%"
+            },
+            {
+                "score": 2,
+                "label": "Sometimes",
+                "percentage": "21-40%"
+            },
+            {
+                "score": 3,
+                "label": "Frequently",
+                "percentage": "41-60%"
+            },
+            {
+                "score": 4,
+                "label": "Mostly",
+                "percentage": "61-80%"
+            },
+            {
+                "score": 5,
+                "label": "Always",
+                "percentage": "81-100%"
+            }
+        ]
+    },
+    "domains": [
+        {
+            "domain_id": "I",
+            "domain_name": "SOCIAL RELATIONSHIP AND RECIPROCITY",
+            "items": [
+                {
+                    "item_number": 1,
+                    "statement": "Has poor eye contact"
+                },
+                {
+                    "item_number": 2,
+                    "statement": "Lacks social smile"
+                },
+                {
+                    "item_number": 3,
+                    "statement": "Remains aloof"
+                },
+                {
+                    "item_number": 4,
+                    "statement": "Does not reach out to others"
+                },
+                {
+                    "item_number": 5,
+                    "statement": "Unable to relate to people"
+                },
+                {
+                    "item_number": 6,
+                    "statement": "Unable to respond to social/ environmental cues"
+                },
+                {
+                    "item_number": 7,
+                    "statement": "Engages in solitary and repetitive play activities"
+                },
+                {
+                    "item_number": 8,
+                    "statement": "Unable to take turns in social interaction"
+                },
+                {
+                    "item_number": 9,
+                    "statement": "Does not maintain peer relationships"
+                }
+            ]
+        },
+        {
+            "domain_id": "II",
+            "domain_name": "EMOTIONAL RESPONSIVENESS",
+            "items": [
+                {
+                    "item_number": 10,
+                    "statement": "Shows inappropriate emotional response"
+                },
+                {
+                    "item_number": 11,
+                    "statement": "Shows exaggerated emotions"
+                },
+                {
+                    "item_number": 12,
+                    "statement": "Engages in self-stimulating emotions"
+                },
+                {
+                    "item_number": 13,
+                    "statement": "Lacks fear of danger"
+                },
+                {
+                    "item_number": 14,
+                    "statement": "Excited or agitated for no apparent reason"
+                }
+            ]
+        },
+        {
+            "domain_id": "III",
+            "domain_name": "SPEECH-LANGUAGE AND COMMUNICATION",
+            "items": [
+                {
+                    "item_number": 15,
+                    "statement": "Acquired speech and lost it"
+                },
+                {
+                    "item_number": 16,
+                    "statement": "Has difficulty in using non-verbal language or gestures to communicate"
+                },
+                {
+                    "item_number": 17,
+                    "statement": "Engages in stereotyped and repetitive use of language"
+                },
+                {
+                    "item_number": 18,
+                    "statement": "Engages in echolalic speech"
+                },
+                {
+                    "item_number": 19,
+                    "statement": "Produces infantile squeals/ unusual noises"
+                },
+                {
+                    "item_number": 20,
+                    "statement": "Unable to initiate or sustain conversation with others"
+                },
+                {
+                    "item_number": 21,
+                    "statement": "Uses jargon or meaningless words"
+                },
+                {
+                    "item_number": 22,
+                    "statement": "Uses pronoun reversals"
+                },
+                {
+                    "item_number": 23,
+                    "statement": "Unable to grasp pragmatics of communication (real meaning)"
+                }
+            ]
+        },
+        {
+            "domain_id": "IV",
+            "domain_name": "BEHAVIOUR PATTERNS",
+            "items": [
+                {
+                    "item_number": 24,
+                    "statement": "Engages in stereotyped and repetitive motor mannerisms"
+                },
+                {
+                    "item_number": 25,
+                    "statement": "Shows attachment to inanimate objects"
+                },
+                {
+                    "item_number": 26,
+                    "statement": "Shows hyperactivity/restlessness"
+                },
+                {
+                    "item_number": 27,
+                    "statement": "Exhibits aggressive behavior"
+                },
+                {
+                    "item_number": 28,
+                    "statement": "Throws temper tantrums"
+                },
+                {
+                    "item_number": 29,
+                    "statement": "Engages in self-injurious behavior"
+                },
+                {
+                    "item_number": 30,
+                    "statement": "Insists on sameness"
+                }
+            ]
+        },
+        {
+            "domain_id": "V",
+            "domain_name": "SENSORY ASPECTS",
+            "items": [
+                {
+                    "item_number": 31,
+                    "statement": "Unusually sensitive to sensory stimuli"
+                },
+                {
+                    "item_number": 32,
+                    "statement": "Stares into space for long periods of time"
+                },
+                {
+                    "item_number": 33,
+                    "statement": "Has difficulty in tracking objects"
+                },
+                {
+                    "item_number": 34,
+                    "statement": "Has unusual vision"
+                },
+                {
+                    "item_number": 35,
+                    "statement": "Insensitive to pain"
+                },
+                {
+                    "item_number": 36,
+                    "statement": "Responds to objects/people unusually by smelling, touching or tasting"
+                }
+            ]
+        },
+        {
+            "domain_id": "VI",
+            "domain_name": "COGNITIVE COMPONENT",
+            "items": [
+                {
+                    "item_number": 37,
+                    "statement": "Inconsistent attention and concentration"
+                },
+                {
+                    "item_number": 38,
+                    "statement": "Shows delay in responding"
+                },
+                {
+                    "item_number": 39,
+                    "statement": "Has unusual memory of some kind"
+                },
+                {
+                    "item_number": 40,
+                    "statement": "Has 'savant' ability"
+                }
+            ]
+        }
+    ],
+    "classification": {
+        "no_autism": {
+            "min_score": null,
+            "max_score": 69,
+            "label": "< 70"
+        },
+        "mild_autism": {
+            "min_score": 70,
+            "max_score": 106,
+            "label": "70 to 106"
+        },
+        "moderate_autism": {
+            "min_score": 107,
+            "max_score": 153,
+            "label": "107 to 153"
+        },
+        "severe_autism": {
+            "min_score": 154,
+            "max_score": null,
+            "label": "> 153"
+        }
+    }
+}
