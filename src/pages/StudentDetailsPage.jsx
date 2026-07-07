@@ -271,32 +271,75 @@ export function StudentDetailsPage() {
               <CardDescription>Current assessment status for this student</CardDescription>
             </CardHeader>
             <CardContent className="pt-5">
-              {student.assessmentStatus === "completed" ? (
-                <div className="flex items-center gap-4 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-                  <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+              {student.assessmentStatus === "completed" ? (() => {
+                // Severity → colour mapping
+                const SEV_COLOR = {
+                  "No Autism":       { bg: "bg-emerald-50 dark:bg-emerald-900/20", border: "border-emerald-200 dark:border-emerald-800", text: "text-emerald-700 dark:text-emerald-300", badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", bar: "bg-emerald-500" },
+                  "Mild Autism":     { bg: "bg-amber-50 dark:bg-amber-900/20",   border: "border-amber-200 dark:border-amber-800",   text: "text-amber-700 dark:text-amber-300",   badge: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",   bar: "bg-amber-500"   },
+                  "Moderate Autism": { bg: "bg-orange-50 dark:bg-orange-900/20", border: "border-orange-200 dark:border-orange-800", text: "text-orange-700 dark:text-orange-300", badge: "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-300", bar: "bg-orange-500" },
+                  "Severe Autism":   { bg: "bg-red-50 dark:bg-red-900/20",       border: "border-red-200 dark:border-red-800",       text: "text-red-700 dark:text-red-300",       badge: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",           bar: "bg-red-500"     },
+                };
+                const sev = student.assessmentSeverity || "No Autism";
+                const c   = SEV_COLOR[sev] || SEV_COLOR["No Autism"];
+                const score = student.assessmentScore ?? 0;
+                const pct   = Math.round((score / 200) * 100);
+                const takenAt = student.assessmentTakenAt
+                  ? new Date(student.assessmentTakenAt).toLocaleDateString("en-GB", { day:"2-digit", month:"short", year:"numeric" })
+                  : null;
+
+                return (
+                  <div className={`rounded-xl border ${c.border} ${c.bg} overflow-hidden`}>
+                    {/* Top bar */}
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-inherit">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                        <span className="text-sm font-semibold text-foreground">Assessment Completed</span>
+                      </div>
+                      {takenAt && (
+                        <span className="text-xs text-muted-foreground">{takenAt}</span>
+                      )}
+                    </div>
+
+                    {/* Details grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border/60">
+                      {/* Method */}
+                      <div className="px-4 py-4">
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">Method</p>
+                        <p className="text-sm font-bold text-foreground">{student.assessmentType || "ISAA"}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Indian Scale for Assessment of Autism</p>
+                      </div>
+
+                      {/* Score */}
+                      <div className="px-4 py-4">
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">Score</p>
+                        <p className={`text-2xl font-black ${c.text}`}>{score}<span className="text-sm font-normal text-muted-foreground ml-1">/ 200</span></p>
+                        <div className="mt-2 w-full bg-muted rounded-full h-1.5">
+                          <div className={`${c.bar} h-1.5 rounded-full transition-all`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+
+                      {/* Severity */}
+                      <div className="px-4 py-4">
+                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">Severity</p>
+                        <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${c.badge}`}>{sev}</span>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {sev === "No Autism"       && "Score < 70"}
+                          {sev === "Mild Autism"     && "Score 70–106"}
+                          {sev === "Moderate Autism" && "Score 107–153"}
+                          {sev === "Severe Autism"   && "Score > 153"}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-emerald-700 dark:text-emerald-300">
-                      Assessment Completed
-                    </p>
-                    <p className="text-sm text-emerald-600/80 dark:text-emerald-400/70 mt-0.5">
-                      This student has completed their assessment test.
-                    </p>
-                  </div>
-                </div>
-              ) : (
+                );
+              })() : (
                 <div className="flex items-center gap-4 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
                   <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center shrink-0">
                     <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-semibold text-amber-700 dark:text-amber-300">
-                      Assessment Pending
-                    </p>
-                    <p className="text-sm text-amber-600/80 dark:text-amber-400/70 mt-0.5">
-                      The assessment has not been completed yet.
-                    </p>
+                    <p className="font-semibold text-amber-700 dark:text-amber-300">Assessment Pending</p>
+                    <p className="text-sm text-amber-600/80 dark:text-amber-400/70 mt-0.5">The assessment has not been completed yet.</p>
                   </div>
                   <NavLink
                     to={`/assessment?studentId=${student._id}`}

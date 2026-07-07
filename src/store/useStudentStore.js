@@ -113,6 +113,34 @@ export const useStudentStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Save assessment result for a student.
+   * @param {string} token
+   * @param {string} studentId
+   * @param {{ assessmentType, assessmentScore, assessmentSeverity }} payload
+   */
+  saveAssessmentResult: async (token, studentId, payload) => {
+    try {
+      const res = await fetch(`${API_BASE}/students/${studentId}/assessment`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.message };
+      // Update currentStudent in store if it's the same one
+      set((state) => ({
+        currentStudent: state.currentStudent?._id === studentId ? data.student : state.currentStudent,
+      }));
+      return { success: true, student: data.student };
+    } catch {
+      return { success: false, error: 'Network error' };
+    }
+  },
+
   /** Clear any error message */
   clearError: () => set({ error: null }),
 }));
