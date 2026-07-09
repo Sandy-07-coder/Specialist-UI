@@ -95,7 +95,11 @@ function Instructions({ onNext }) {
 
 // ── Phase 2: Assessment form ───────────────────────────────────────────────────
 function AssessmentForm({ student, onComplete }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language?.split("-")[0];
+  /** Returns the regional translation for an item number, or null for English */
+  const regionalStatement = (itemNumber) =>
+    lang !== "en" ? t(`isaaItems.${itemNumber}`, "") : null;
   const today = new Date().toISOString().split("T")[0];
   const [patient, setPatient] = useState({
     name:     student?.name     || "",
@@ -216,7 +220,14 @@ function AssessmentForm({ student, onComplete }) {
                   <span className="shrink-0 w-7 h-7 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-bold text-muted-foreground">
                     {item.item_number}
                   </span>
-                  <p className="text-sm font-medium text-foreground pt-1">{item.statement}</p>
+                  <p className="text-sm font-medium text-foreground pt-1 leading-snug">
+                    {item.statement}
+                    {regionalStatement(item.item_number) && (
+                      <span className="block text-xs text-muted-foreground font-normal mt-0.5">
+                        ({regionalStatement(item.item_number)})
+                      </span>
+                    )}
+                  </p>
                 </div>
                 <div className="grid grid-cols-5 gap-2 ml-10">
                   {[1, 2, 3, 4, 5].map(v => (

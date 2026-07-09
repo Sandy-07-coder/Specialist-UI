@@ -1,33 +1,17 @@
+/*
+ * Import Noto Sans font families BEFORE tailwindcss so they are available
+ * when Tailwind's preflight runs. Covers all 5 UI languages:
+ *   Noto Sans            → English (latin)
+ *   Noto Sans Tamil      → Tamil (தமிழ்)
+ *   Noto Sans Telugu     → Telugu (తెలుగు)
+ *   Noto Sans Malayalam  → Malayalam (മലയാളം)
+ *   Noto Sans Devanagari → Hindi (हिंदी)
+ */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Sans+Tamil:wght@100..900&family=Noto+Sans+Telugu:wght@100..900&family=Noto+Sans+Malayalam:wght@100..900&family=Noto+Sans+Devanagari:wght@100..900&display=swap");
+
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
-
-@layer base {
-  /*
-   * Global font stack — covers all 5 UI languages:
-   *   Noto Sans          → English (latin)
-   *   Noto Sans Tamil    → Tamil (தமிழ்)
-   *   Noto Sans Telugu   → Telugu (తెలుగు)
-   *   Noto Sans Malayalam→ Malayalam (മലയാളം)
-   *   Noto Sans Devanagari→ Hindi (हिंदी)
-   *
-   * The browser automatically picks the first family in the list
-   * that contains a glyph for each character, so all scripts
-   * render correctly without needing per-element overrides.
-   */
-  html,
-  body {
-    font-family:
-      "Noto Sans",
-      "Noto Sans Tamil",
-      "Noto Sans Telugu",
-      "Noto Sans Malayalam",
-      "Noto Sans Devanagari",
-      ui-sans-serif,
-      system-ui,
-      sans-serif;
-  }
-}
 
 @theme {
   --color-background: hsl(var(--background));
@@ -57,6 +41,21 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+
+  /*
+   * Override Tailwind v4's --font-sans so every element that inherits
+   * font-family (all of them, via Tailwind's preflight) gets the full
+   * Indic-capable font stack automatically.
+   */
+  --font-sans:
+    "Noto Sans",
+    "Noto Sans Tamil",
+    "Noto Sans Telugu",
+    "Noto Sans Malayalam",
+    "Noto Sans Devanagari",
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
 }
 
 @layer base {

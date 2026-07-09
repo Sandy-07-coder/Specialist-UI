@@ -4,8 +4,10 @@ import { SUPPORTED_LANGUAGES } from "@/i18n";
 
 /**
  * A compact language-switcher dropdown.
- * Renders as a borderless select with a globe icon prefix.
- * Language preference is persisted to localStorage via i18next-browser-languagedetector.
+ * Uses CSS custom properties (bg-card, text-foreground, border-border) so it
+ * correctly adapts to both light and dark themes — native <select> elements
+ * ignore Tailwind's bg-transparent in dark mode because the browser forces its
+ * own OS-level background on the popup.
  */
 export function LanguageSwitcher({ className = "" }) {
   const { i18n, t } = useTranslation();
@@ -20,20 +22,23 @@ export function LanguageSwitcher({ className = "" }) {
         id="language-switcher"
         value={i18n.language?.split("-")[0]}
         onChange={(e) => i18n.changeLanguage(e.target.value)}
+        aria-label={t("languageSwitcher.label")}
         className="
-          bg-transparent text-sm text-foreground
+          text-sm font-medium
+          bg-card text-foreground
           border border-border rounded-lg
-          px-2 py-1 pr-6
+          px-2 py-1
           focus:outline-none focus:ring-2 focus:ring-primary
           cursor-pointer hover:border-primary/60
           transition-colors
-          appearance-none
         "
-        style={{ backgroundImage: "none" }}
-        aria-label={t("languageSwitcher.label")}
       >
         {SUPPORTED_LANGUAGES.map(({ code, nativeLabel }) => (
-          <option key={code} value={code}>
+          <option
+            key={code}
+            value={code}
+            className="bg-card text-foreground"
+          >
             {nativeLabel}
           </option>
         ))}
