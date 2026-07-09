@@ -5,37 +5,40 @@ import {
   Trophy, AlertTriangle, CheckCircle2, Info, Loader2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import isaaData from "@/assets/isaa_assessment_details.json";
 import { useStudentStore } from "@/store/useStudentStore";
 import { useAuthStore } from "@/store";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const OPTIONS = isaaData.scoring_guidelines.options;
 const DOMAINS = isaaData.domains;
-const LABELS  = { 1:"Rarely", 2:"Sometimes", 3:"Frequently", 4:"Mostly", 5:"Always" };
-const PCT     = { 1:"0–20%", 2:"21–40%", 3:"41–60%", 4:"61–80%", 5:"81–100%" };
 const TOTAL   = DOMAINS.reduce((s, d) => s + d.items.length, 0); // 40
 
-function classify(n) {
-  if (n < 70)  return { label:"No Autism",       color:"emerald", range:"< 70" };
-  if (n <= 106) return { label:"Mild Autism",     color:"amber",   range:"70–106" };
-  if (n <= 153) return { label:"Moderate Autism", color:"orange",  range:"107–153" };
-  return              { label:"Severe Autism",    color:"red",     range:"> 153" };
+function classify(n, t) {
+  if (n < 70)   return { label: t("isaa.results.classify.noAutism"),       color: "emerald", range: "< 70" };
+  if (n <= 106) return { label: t("isaa.results.classify.mildAutism"),     color: "amber",   range: "70–106" };
+  if (n <= 153) return { label: t("isaa.results.classify.moderateAutism"), color: "orange",  range: "107–153" };
+  return              { label: t("isaa.results.classify.severeAutism"),    color: "red",     range: "> 153" };
 }
 
 function dobToInput(isoString) {
   if (!isoString) return "";
-  return new Date(isoString).toISOString().split("T")[0]; // yyyy-mm-dd for <input type="date">
+  return new Date(isoString).toISOString().split("T")[0];
 }
 function ageFromDob(isoString) {
   if (!isoString) return "";
-  const d = new Date(isoString), t = new Date();
-  let a = t.getFullYear() - d.getFullYear();
-  if (t.getMonth() - d.getMonth() < 0 || (t.getMonth() === d.getMonth() && t.getDate() < d.getDate())) a--;
+  const d = new Date(isoString), now = new Date();
+  let a = now.getFullYear() - d.getFullYear();
+  if (now.getMonth() - d.getMonth() < 0 || (now.getMonth() === d.getMonth() && now.getDate() < d.getDate())) a--;
   return `${a} years`;
 }
 
-// ── Phase 1 ──────────────────────────────────────────────────────────────────
+// ── Phase 1: Instructions ─────────────────────────────────────────────────────
 function Instructions({ onNext }) {
+  const { t } = useTranslation();
+  const steps = t("isaa.instructions.steps", { returnObjects: true });
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20">
@@ -45,21 +48,19 @@ function Instructions({ onNext }) {
               <BookOpen className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h2 className="font-bold text-foreground text-lg">Indian Scale for Assessment of Autism (ISAA)</h2>
-              <p className="text-sm text-muted-foreground mt-1">National Institute for the Mentally Handicapped · Govt. of India</p>
-              <p className="text-xs text-muted-foreground">ISO 9001:2000 · Manovikas Nagar, Secunderabad</p>
+              <h2 className="font-bold text-foreground text-lg">{t("isaa.instructions.heading")}</h2>
+              <p className="text-sm text-muted-foreground mt-1">{t("isaa.instructions.institute")}</p>
+              <p className="text-xs text-muted-foreground">{t("isaa.instructions.address")}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {[
-        { n:"1", title:"How it is Done", body:"A trained clinician takes 45–60 minutes using:\n• Direct observation of behaviours.\n• Interaction (tasks, communication testing).\n• An interview with the parent/caregiver." },
-        { n:"2", title:"The 40-Item Scoring System", body:"Rate 40 behaviours across 6 domains (Social, Emotional, Speech, Behavioural, Sensory, Cognitive) on a 1–5 scale:\n• 1 (Rarely): 0–20%\n• 2 (Sometimes): 21–40%\n• 3 (Frequently): 41–60%\n• 4 (Mostly): 61–80%\n• 5 (Always): 81–100%" },
-        { n:"3", title:"Understanding the Results", body:"Scores summed (Min 40, Max 200):\n• Below 70 → No Autism\n• 70–106 → Mild Autism\n• 107–153 → Moderate Autism\n• Above 153 → Severe Autism" },
-      ].map(s => (
-        <div key={s.n} className="flex gap-4 p-5 rounded-2xl border border-border bg-card">
-          <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">{s.n}</div>
+      {Array.isArray(steps) && steps.map((s, i) => (
+        <div key={i} className="flex gap-4 p-5 rounded-2xl border border-border bg-card">
+          <div className="shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+            {i + 1}
+          </div>
           <div>
             <h3 className="font-semibold text-foreground mb-2">{s.title}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{s.body}</p>
@@ -68,7 +69,10 @@ function Instructions({ onNext }) {
       ))}
 
       <div className="rounded-2xl border border-border bg-card p-5">
-        <div className="flex items-center gap-2 mb-4"><Info className="w-4 h-4 text-muted-foreground" /><h3 className="font-semibold text-foreground text-sm">Scoring Reference</h3></div>
+        <div className="flex items-center gap-2 mb-4">
+          <Info className="w-4 h-4 text-muted-foreground" />
+          <h3 className="font-semibold text-foreground text-sm">{t("isaa.instructions.scoringReference")}</h3>
+        </div>
         <div className="grid grid-cols-5 gap-2">
           {OPTIONS.map(o => (
             <div key={o.score} className="text-center p-2 rounded-xl bg-muted border border-border">
@@ -82,15 +86,20 @@ function Instructions({ onNext }) {
 
       <div className="flex justify-end">
         <button onClick={onNext} className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors">
-          Start Assessment <ChevronRight className="w-4 h-4" />
+          {t("isaa.instructions.startAssessment")} <ChevronRight className="w-4 h-4" />
         </button>
       </div>
     </div>
   );
 }
 
-// ── Phase 2 ──────────────────────────────────────────────────────────────────
+// ── Phase 2: Assessment form ───────────────────────────────────────────────────
 function AssessmentForm({ student, onComplete }) {
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language?.split("-")[0];
+  /** Returns the regional translation for an item number, or null for English */
+  const regionalStatement = (itemNumber) =>
+    lang !== "en" ? t(`isaaItems.${itemNumber}`, "") : null;
   const today = new Date().toISOString().split("T")[0];
   const [patient, setPatient] = useState({
     name:     student?.name     || "",
@@ -100,9 +109,9 @@ function AssessmentForm({ student, onComplete }) {
     examiner: "",
     date:     today,
   });
-  const [scores, setScores]           = useState({});
+  const [scores, setScores]             = useState({});
   const [activeDomain, setActiveDomain] = useState(0);
-  const [error, setError]             = useState("");
+  const [error, setError]               = useState("");
 
   const answered = Object.keys(scores).length;
   const progress  = Math.round((answered / TOTAL) * 100);
@@ -113,12 +122,12 @@ function AssessmentForm({ student, onComplete }) {
 
   const handleSubmit = () => {
     if (!patient.name.trim() || !patient.examiner.trim()) {
-      setError("Please fill Child's Name and Examiner before submitting.");
+      setError(t("isaa.form.errorFillRequired"));
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
     if (answered < TOTAL) {
-      setError(`Please rate all 40 items. ${TOTAL - answered} remaining.`);
+      setError(t("isaa.form.errorRateAll", { remaining: TOTAL - answered }));
       return;
     }
     setError("");
@@ -126,39 +135,52 @@ function AssessmentForm({ student, onComplete }) {
     onComplete({ patient, scores, total });
   };
 
+  const fields = [
+    { k: "name",     l: t("isaa.form.fields.name"),     type: "text", p: t("isaa.form.fields.namePlaceholder") },
+    { k: "gender",   l: t("isaa.form.fields.gender"),   type: "text", p: t("isaa.form.fields.genderPlaceholder") },
+    { k: "age",      l: t("isaa.form.fields.age"),      type: "text", p: t("isaa.form.fields.agePlaceholder") },
+    { k: "dob",      l: t("isaa.form.fields.dob"),      type: "date", p: "" },
+    { k: "examiner", l: t("isaa.form.fields.examiner"), type: "text", p: t("isaa.form.fields.examinerPlaceholder") },
+    { k: "date",     l: t("isaa.form.fields.date"),     type: "date", p: "" },
+  ];
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* Progress */}
       <div className="rounded-2xl border border-border bg-card p-4">
         <div className="flex justify-between mb-2">
-          <span className="text-sm font-medium text-foreground">Progress</span>
+          <span className="text-sm font-medium text-foreground">{t("isaa.form.progress")}</span>
           <span className="text-sm font-bold text-primary">{answered} / {TOTAL}</span>
         </div>
         <div className="w-full bg-muted rounded-full h-2.5">
-          <div className="bg-primary h-2.5 rounded-full transition-all" style={{ width:`${progress}%` }} />
+          <div className="bg-primary h-2.5 rounded-full transition-all" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
       {/* Patient info */}
       <Card className="border-border bg-card">
         <CardHeader className="border-b border-border pb-4">
-          <CardTitle className="text-base flex items-center gap-2"><ClipboardList className="w-4 h-4 text-muted-foreground" />Patient Information</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <ClipboardList className="w-4 h-4 text-muted-foreground" />
+            {t("isaa.form.patientInfo")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="pt-5">
-          {error && <div className="mb-4 flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm"><AlertTriangle className="w-4 h-4 shrink-0" />{error}</div>}
-          {student && <p className="mb-4 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2">✓ Pre-filled from student record</p>}
+          {error && (
+            <div className="mb-4 flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 text-destructive text-sm">
+              <AlertTriangle className="w-4 h-4 shrink-0" />{error}
+            </div>
+          )}
+          {student && (
+            <p className="mb-4 text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2">
+              {t("isaa.form.prefilled")}
+            </p>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[
-              { k:"name",     l:"Name of the Child *", t:"text", p:"Full name" },
-              { k:"gender",   l:"Gender",               t:"text", p:"e.g. Male / Female" },
-              { k:"age",      l:"Age",                  t:"text", p:"e.g. 5 years" },
-              { k:"dob",      l:"D.O.B",                t:"date", p:"" },
-              { k:"examiner", l:"Examiner *",           t:"text", p:"Clinician name" },
-              { k:"date",     l:"Date",                 t:"date", p:"" },
-            ].map(f => (
+            {fields.map(f => (
               <div key={f.k}>
                 <label className="block text-sm font-medium text-foreground mb-1.5">{f.l}</label>
-                <input type={f.t} value={patient[f.k]} onChange={e => set(f.k, e.target.value)} placeholder={f.p} className={inp} />
+                <input type={f.type} value={patient[f.k]} onChange={e => set(f.k, e.target.value)} placeholder={f.p} className={inp} />
               </div>
             ))}
           </div>
@@ -177,7 +199,7 @@ function AssessmentForm({ student, onComplete }) {
                 : "bg-card text-muted-foreground border-border hover:border-primary/50"
               }`}>
               {done && i !== activeDomain && <CheckCircle2 className="inline w-3 h-3 mr-1" />}
-              Domain {d.domain_id}
+              {t("isaa.form.domain")} {d.domain_id}
             </button>
           );
         })}
@@ -186,8 +208,8 @@ function AssessmentForm({ student, onComplete }) {
       {/* Items */}
       <Card className="border-border bg-card">
         <CardHeader className="border-b border-border pb-4">
-          <CardTitle className="text-base">Domain {domain.domain_id}: {domain.domain_name}</CardTitle>
-          <p className="text-xs text-muted-foreground mt-1">Rate 1 (Rarely) → 5 (Always)</p>
+          <CardTitle className="text-base">{t("isaa.form.domain")} {domain.domain_id}: {domain.domain_name}</CardTitle>
+          <p className="text-xs text-muted-foreground mt-1">{t("isaa.form.rateScale")}</p>
         </CardHeader>
         <CardContent className="pt-5 space-y-5">
           {domain.items.map(item => {
@@ -195,21 +217,34 @@ function AssessmentForm({ student, onComplete }) {
             return (
               <div key={item.item_number} className={`p-4 rounded-xl border transition-colors ${sel ? "border-primary/30 bg-primary/5" : "border-border bg-muted/30"}`}>
                 <div className="flex items-start gap-3 mb-3">
-                  <span className="shrink-0 w-7 h-7 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-bold text-muted-foreground">{item.item_number}</span>
-                  <p className="text-sm font-medium text-foreground pt-1">{item.statement}</p>
+                  <span className="shrink-0 w-7 h-7 rounded-full bg-muted border border-border flex items-center justify-center text-xs font-bold text-muted-foreground">
+                    {item.item_number}
+                  </span>
+                  <p className="text-sm font-medium text-foreground pt-1 leading-snug">
+                    {item.statement}
+                    {regionalStatement(item.item_number) && (
+                      <span className="block text-xs text-muted-foreground font-normal mt-0.5">
+                        ({regionalStatement(item.item_number)})
+                      </span>
+                    )}
+                  </p>
                 </div>
                 <div className="grid grid-cols-5 gap-2 ml-10">
-                  {[1,2,3,4,5].map(v => (
+                  {[1, 2, 3, 4, 5].map(v => (
                     <button key={v} type="button" onClick={() => setScores(p => ({ ...p, [item.item_number]: v }))}
                       className={`flex flex-col items-center p-2 rounded-xl border-2 transition-all text-center ${
                         sel === v ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:border-primary/50 text-foreground"
                       }`}>
                       <span className="text-base font-bold leading-none">{v}</span>
-                      <span className="text-[9px] mt-1 hidden sm:block">{LABELS[v]}</span>
+                      <span className="text-[9px] mt-1 hidden sm:block">{t(`isaa.form.scoreLabels.${v}`)}</span>
                     </button>
                   ))}
                 </div>
-                {sel && <p className="text-xs text-muted-foreground ml-10 mt-2">Selected: <span className="font-semibold text-primary">{LABELS[sel]}</span> — {PCT[sel]}</p>}
+                {sel && (
+                  <p className="text-xs text-muted-foreground ml-10 mt-2">
+                    {t("isaa.form.selected")}: <span className="font-semibold text-primary">{t(`isaa.form.scoreLabels.${sel}`)}</span> — {t(`isaa.form.scorePct.${sel}`)}
+                  </p>
+                )}
               </div>
             );
           })}
@@ -217,16 +252,16 @@ function AssessmentForm({ student, onComplete }) {
       </Card>
 
       <div className="flex justify-between">
-        <button onClick={() => setActiveDomain(p => Math.max(0, p-1))} disabled={activeDomain === 0}
+        <button onClick={() => setActiveDomain(p => Math.max(0, p - 1))} disabled={activeDomain === 0}
           className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors disabled:opacity-40">
-          <ChevronLeft className="w-4 h-4" /> Previous
+          <ChevronLeft className="w-4 h-4" /> {t("isaa.form.previous")}
         </button>
         {activeDomain < DOMAINS.length - 1
-          ? <button onClick={() => setActiveDomain(p => p+1)} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
-              Next Domain <ChevronRight className="w-4 h-4" />
+          ? <button onClick={() => setActiveDomain(p => p + 1)} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors">
+              {t("isaa.form.nextDomain")} <ChevronRight className="w-4 h-4" />
             </button>
           : <button onClick={handleSubmit} className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors">
-              <Trophy className="w-4 h-4" /> Submit Assessment
+              <Trophy className="w-4 h-4" /> {t("isaa.form.submitAssessment")}
             </button>
         }
       </div>
@@ -234,29 +269,38 @@ function AssessmentForm({ student, onComplete }) {
   );
 }
 
-// ── Phase 3 ──────────────────────────────────────────────────────────────────
+// ── Phase 3: Results ──────────────────────────────────────────────────────────
 const COLOR = {
-  emerald: { ring:"ring-emerald-400", bg:"bg-emerald-50 dark:bg-emerald-900/20", border:"border-emerald-300 dark:border-emerald-700", text:"text-emerald-700 dark:text-emerald-300", icon:"text-emerald-500" },
-  amber:   { ring:"ring-amber-400",   bg:"bg-amber-50 dark:bg-amber-900/20",     border:"border-amber-300 dark:border-amber-700",     text:"text-amber-700 dark:text-amber-300",   icon:"text-amber-500" },
-  orange:  { ring:"ring-orange-400",  bg:"bg-orange-50 dark:bg-orange-900/20",   border:"border-orange-300 dark:border-orange-700",   text:"text-orange-700 dark:text-orange-300", icon:"text-orange-500" },
-  red:     { ring:"ring-red-400",     bg:"bg-red-50 dark:bg-red-900/20",         border:"border-red-300 dark:border-red-700",         text:"text-red-700 dark:text-red-300",       icon:"text-red-500" },
+  emerald: { ring: "ring-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-900/20", border: "border-emerald-300 dark:border-emerald-700", text: "text-emerald-700 dark:text-emerald-300", icon: "text-emerald-500" },
+  amber:   { ring: "ring-amber-400",   bg: "bg-amber-50 dark:bg-amber-900/20",     border: "border-amber-300 dark:border-amber-700",     text: "text-amber-700 dark:text-amber-300",   icon: "text-amber-500" },
+  orange:  { ring: "ring-orange-400",  bg: "bg-orange-50 dark:bg-orange-900/20",   border: "border-orange-300 dark:border-orange-700",   text: "text-orange-700 dark:text-orange-300", icon: "text-orange-500" },
+  red:     { ring: "ring-red-400",     bg: "bg-red-50 dark:bg-red-900/20",         border: "border-red-300 dark:border-red-700",         text: "text-red-700 dark:text-red-300",       icon: "text-red-500" },
 };
 
 function Results({ result, saving, saveError, onRestart, studentId }) {
+  const { t } = useTranslation();
   const { patient, scores, total } = result;
-  const cls = classify(total);
+  const cls = classify(total, t);
   const c   = COLOR[cls.color];
+
   const domainScores = DOMAINS.map(d => ({
     id: d.domain_id, name: d.domain_name,
     score: d.items.reduce((s, it) => s + (scores[it.item_number] || 0), 0),
     max: d.items.length * 5,
   }));
 
+  const severityRows = [
+    { key: "noAutism",       range: "< 70",    color: "emerald" },
+    { key: "mildAutism",     range: "70–106",  color: "amber" },
+    { key: "moderateAutism", range: "107–153", color: "orange" },
+    { key: "severeAutism",   range: "> 153",   color: "red" },
+  ];
+
   return (
     <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
       {saving && (
         <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20 text-sm text-primary">
-          <Loader2 className="w-4 h-4 animate-spin" /> Saving results to student record…
+          <Loader2 className="w-4 h-4 animate-spin" /> {t("isaa.results.savingResults")}
         </div>
       )}
       {saveError && (
@@ -266,7 +310,7 @@ function Results({ result, saving, saveError, onRestart, studentId }) {
       )}
       {!saving && !saveError && studentId && (
         <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-sm">
-          <CheckCircle2 className="w-4 h-4 shrink-0" /> Results saved to student record successfully.
+          <CheckCircle2 className="w-4 h-4 shrink-0" /> {t("isaa.results.savedSuccess")}
         </div>
       )}
 
@@ -276,32 +320,32 @@ function Results({ result, saving, saveError, onRestart, studentId }) {
           <span className={`text-2xl font-black ${c.text}`}>{total}</span>
         </div>
         <h2 className={`text-2xl font-black ${c.text}`}>{cls.label}</h2>
-        <p className="text-sm text-muted-foreground mt-1">Score range: {cls.range} · Max: 200</p>
+        <p className="text-sm text-muted-foreground mt-1">{t("isaa.results.scoreRange", { range: cls.range })}</p>
         <div className="mt-3 space-y-0.5">
-          {patient.name && <p className="text-sm font-medium text-foreground">Child: <span className="font-semibold">{patient.name}</span></p>}
-          {patient.examiner && <p className="text-sm text-muted-foreground">Examiner: {patient.examiner}</p>}
-          <p className="text-xs text-muted-foreground">Test: ISAA</p>
+          {patient.name     && <p className="text-sm font-medium text-foreground">{t("isaa.results.child")}: <span className="font-semibold">{patient.name}</span></p>}
+          {patient.examiner && <p className="text-sm text-muted-foreground">{t("isaa.results.examiner")}: {patient.examiner}</p>}
+          <p className="text-xs text-muted-foreground">{t("isaa.results.test")}: ISAA</p>
         </div>
       </div>
 
       {/* Severity scale */}
       <Card className="border-border bg-card">
         <CardHeader className="border-b border-border pb-4">
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Severity Scale</CardTitle>
+          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+            {t("isaa.results.severityScale")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-2">
-          {[
-            { label:"No Autism",       range:"< 70",    color:"emerald" },
-            { label:"Mild Autism",     range:"70–106",  color:"amber" },
-            { label:"Moderate Autism", range:"107–153", color:"orange" },
-            { label:"Severe Autism",   range:"> 153",   color:"red" },
-          ].map(s => {
-            const sc = COLOR[s.color], active = s.label === cls.label;
+          {severityRows.map(s => {
+            const sc = COLOR[s.color];
+            const active = t(`isaa.results.classify.${s.key}`) === cls.label;
             return (
-              <div key={s.label} className={`flex items-center justify-between px-4 py-3 rounded-xl border ${active ? `${sc.border} ${sc.bg} font-bold` : "border-border"}`}>
+              <div key={s.key} className={`flex items-center justify-between px-4 py-3 rounded-xl border ${active ? `${sc.border} ${sc.bg} font-bold` : "border-border"}`}>
                 <div className="flex items-center gap-2">
                   {active && <CheckCircle2 className={`w-4 h-4 ${sc.icon}`} />}
-                  <span className={`text-sm ${active ? sc.text : "text-muted-foreground"}`}>{s.label}</span>
+                  <span className={`text-sm ${active ? sc.text : "text-muted-foreground"}`}>
+                    {t(`isaa.results.classify.${s.key}`)}
+                  </span>
                 </div>
                 <span className={`text-xs font-mono ${active ? sc.text : "text-muted-foreground"}`}>{s.range}</span>
               </div>
@@ -313,7 +357,9 @@ function Results({ result, saving, saveError, onRestart, studentId }) {
       {/* Domain breakdown */}
       <Card className="border-border bg-card">
         <CardHeader className="border-b border-border pb-4">
-          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Domain Breakdown</CardTitle>
+          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+            {t("isaa.results.domainBreakdown")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-3">
           {domainScores.map(d => (
@@ -323,7 +369,7 @@ function Results({ result, saving, saveError, onRestart, studentId }) {
                 <span className="font-mono text-muted-foreground">{d.score} / {d.max}</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-primary h-2 rounded-full" style={{ width:`${Math.round((d.score/d.max)*100)}%` }} />
+                <div className="bg-primary h-2 rounded-full" style={{ width: `${Math.round((d.score / d.max) * 100)}%` }} />
               </div>
             </div>
           ))}
@@ -331,32 +377,40 @@ function Results({ result, saving, saveError, onRestart, studentId }) {
       </Card>
 
       <div className="flex justify-between">
-        <button onClick={onRestart} className="px-5 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors">New Assessment</button>
+        <button onClick={onRestart} className="px-5 py-2.5 rounded-xl border border-border text-sm font-medium text-foreground hover:bg-muted transition-colors">
+          {t("isaa.results.newAssessment")}
+        </button>
         <NavLink to={studentId ? `/students/${studentId}` : "/students"} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 text-sm font-semibold transition-colors">
-          {studentId ? "Back to Student" : "Back to Students"} <ChevronRight className="w-4 h-4" />
+          {studentId ? t("isaa.results.backToStudent") : t("isaa.results.backToStudents")} <ChevronRight className="w-4 h-4" />
         </NavLink>
       </div>
     </div>
   );
 }
 
-// ── Root ──────────────────────────────────────────────────────────────────────
+// ── Root ───────────────────────────────────────────────────────────────────────
 export function ISAAAssessmentPage() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const studentId = searchParams.get("studentId");
   const { token } = useAuthStore();
   const { currentStudent, isLoadingOne, fetchStudentById, saveAssessmentResult } = useStudentStore();
 
-  const [phase,    setPhase]    = useState("instructions");
-  const [result,   setResult]   = useState(null);
-  const [saving,   setSaving]   = useState(false);
+  const [phase,     setPhase]     = useState("instructions");
+  const [result,    setResult]    = useState(null);
+  const [saving,    setSaving]    = useState(false);
   const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
     if (studentId && token) fetchStudentById(token, studentId);
   }, [studentId, token, fetchStudentById]);
 
-  const phaseIdx = ["instructions","assessment","results"].indexOf(phase);
+  const phaseIdx = ["instructions", "assessment", "results"].indexOf(phase);
+  const stepLabels = [
+    t("isaa.stepInstructions"),
+    t("isaa.stepAssessment"),
+    t("isaa.stepResults"),
+  ];
 
   const handleComplete = async (r) => {
     setResult(r);
@@ -364,7 +418,7 @@ export function ISAAAssessmentPage() {
     if (studentId) {
       setSaving(true);
       setSaveError("");
-      const cls = classify(r.total);
+      const cls = classify(r.total, t);
       const res = await saveAssessmentResult(token, studentId, {
         assessmentType:     "ISAA",
         assessmentScore:    r.total,
@@ -380,27 +434,37 @@ export function ISAAAssessmentPage() {
   return (
     <div className="pb-12 w-full max-w-4xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <NavLink to={`/assessment${studentId ? `?studentId=${studentId}` : ""}`}
-          className="p-2 border border-border rounded-full hover:bg-accent transition text-muted-foreground">
-          <ArrowLeft className="w-5 h-5" />
-        </NavLink>
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">ISAA</h1>
-          <p className="text-xs text-muted-foreground">Indian Scale for Assessment of Autism
-            {student && <span className="ml-2 font-medium text-foreground">· {student.name}</span>}
-          </p>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <NavLink
+            to={`/assessment${studentId ? `?studentId=${studentId}` : ""}`}
+            className="p-2 border border-border rounded-full hover:bg-accent transition text-muted-foreground"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </NavLink>
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground tracking-tight">{t("isaa.title")}</h1>
+            <p className="text-xs text-muted-foreground">
+              {t("isaa.subtitle")}
+              {student && <span className="ml-2 font-medium text-foreground">· {student.name}</span>}
+            </p>
+          </div>
         </div>
+        <LanguageSwitcher />
       </div>
 
       {/* Step indicator */}
       <div className="flex items-center gap-2 flex-wrap">
-        {["Instructions","Assessment","Results"].map((l, i) => {
+        {stepLabels.map((label, i) => {
           const done = i < phaseIdx, active = i === phaseIdx;
           return (
-            <div key={l} className="flex items-center gap-2">
-              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${active ? "bg-primary text-primary-foreground" : done ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300" : "bg-muted text-muted-foreground"}`}>
-                {done ? <CheckCircle2 className="w-3.5 h-3.5" /> : <span>{i+1}</span>} {l}
+            <div key={label} className="flex items-center gap-2">
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${
+                active ? "bg-primary text-primary-foreground"
+                : done  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                :         "bg-muted text-muted-foreground"
+              }`}>
+                {done ? <CheckCircle2 className="w-3.5 h-3.5" /> : <span>{i + 1}</span>} {label}
               </div>
               {i < 2 && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground" />}
             </div>
@@ -411,16 +475,20 @@ export function ISAAAssessmentPage() {
       {/* Loading student */}
       {isLoadingOne && studentId && (
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
-          <Loader2 className="w-4 h-4 animate-spin" /> Loading student info…
+          <Loader2 className="w-4 h-4 animate-spin" /> {t("isaa.loadingStudent")}
         </div>
       )}
 
       {phase === "instructions" && <Instructions onNext={() => setPhase("assessment")} />}
       {phase === "assessment"   && <AssessmentForm student={student} onComplete={handleComplete} />}
       {phase === "results" && result && (
-        <Results result={result} saving={saving} saveError={saveError}
+        <Results
+          result={result}
+          saving={saving}
+          saveError={saveError}
           onRestart={() => { setResult(null); setPhase("instructions"); setSaveError(""); }}
-          studentId={studentId} />
+          studentId={studentId}
+        />
       )}
     </div>
   );
