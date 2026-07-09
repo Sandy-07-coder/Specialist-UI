@@ -2,6 +2,33 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@layer base {
+  /*
+   * Global font stack — covers all 5 UI languages:
+   *   Noto Sans          → English (latin)
+   *   Noto Sans Tamil    → Tamil (தமிழ்)
+   *   Noto Sans Telugu   → Telugu (తెలుగు)
+   *   Noto Sans Malayalam→ Malayalam (മലയാളം)
+   *   Noto Sans Devanagari→ Hindi (हिंदी)
+   *
+   * The browser automatically picks the first family in the list
+   * that contains a glyph for each character, so all scripts
+   * render correctly without needing per-element overrides.
+   */
+  html,
+  body {
+    font-family:
+      "Noto Sans",
+      "Noto Sans Tamil",
+      "Noto Sans Telugu",
+      "Noto Sans Malayalam",
+      "Noto Sans Devanagari",
+      ui-sans-serif,
+      system-ui,
+      sans-serif;
+  }
+}
+
 @theme {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));

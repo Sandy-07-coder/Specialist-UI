@@ -1,0 +1,154 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "done": "Done",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close"
+  },
+  "assessment": {
+    "title": "Assessment Tests",
+    "subtitle": "Select an assessment tool to administer",
+    "sectionLabel": "Available Assessment Tools",
+    "unavailable": "Unavailable",
+    "others": {
+      "label": "Others",
+      "title": "Request a Different Assessment Tool",
+      "description": "Don't see the tool you use? Submit a request and we'll add it."
+    },
+    "modal": {
+      "title": "Request Assessment Tool",
+      "subtitle": "We'll review and add it to the platform"
+    },
+    "form": {
+      "institution": "Institution / Organisation",
+      "institutionPlaceholder": "e.g. NIMHANS, AIIMS",
+      "specialist": "Specialist Name",
+      "specialistPlaceholder": "Your full name",
+      "assessmentTool": "Assessment Tool Name",
+      "assessmentToolPlaceholder": "Full name of the tool",
+      "notes": "Notes (optional)",
+      "notesPlaceholder": "Context about the tool…",
+      "submitRequest": "Submit Request",
+      "submitted": "Request Submitted!",
+      "submittedMessage": "We'll review your request for \"{{assessment}}\" and get back to you."
+    },
+    "tools": {
+      "isaa": {
+        "abbr": "ISAA",
+        "subtitle": "Indian Scale for Assessment of Autism",
+        "description": "A standardised 40-item scale developed for Indian children, covering Social, Emotional, Speech, Behavioural, Sensory, and Cognitive domains.",
+        "tags": ["India-specific", "Ages 2–9", "40 items"]
+      },
+      "inclen": {
+        "abbr": "INCLEN-INDT",
+        "subtitle": "INCLEN Diagnostic Tool for ASD",
+        "description": "A diagnostic tool validated for use in Indian settings by INCLEN, supporting early identification of Autism Spectrum Disorder.",
+        "tags": ["Diagnostic", "Validated India", "Multicenter"]
+      },
+      "iasq": {
+        "abbr": "IASQ",
+        "subtitle": "Indian Autism Screening Questionnaire",
+        "description": "A rapid parent/caregiver-completed screening questionnaire for use in primary healthcare settings as an early triage tool.",
+        "tags": ["Screening", "Parent-report", "Primary Care"]
+      },
+      "cars2": {
+        "abbr": "CARS-2",
+        "subtitle": "Childhood Autism Rating Scale, Second Edition",
+        "description": "A widely-used standardised rating scale for assessing autism severity, with standard and high-functioning forms.",
+        "tags": ["International", "Severity rating", "2 forms"]
+      }
+    }
+  },
+  "isaa": {
+    "title": "ISAA",
+    "subtitle": "Indian Scale for Assessment of Autism",
+    "stepInstructions": "Instructions",
+    "stepAssessment": "Assessment",
+    "stepResults": "Results",
+    "loadingStudent": "Loading student info…",
+    "instructions": {
+      "heading": "Indian Scale for Assessment of Autism (ISAA)",
+      "institute": "National Institute for the Mentally Handicapped · Govt. of India",
+      "address": "ISO 9001:2000 · Manovikas Nagar, Secunderabad",
+      "steps": [
+        {
+          "title": "How it is Done",
+          "body": "A trained clinician takes 45–60 minutes using:\n• Direct observation of behaviours.\n• Interaction (tasks, communication testing).\n• An interview with the parent/caregiver."
+        },
+        {
+          "title": "The 40-Item Scoring System",
+          "body": "Rate 40 behaviours across 6 domains (Social, Emotional, Speech, Behavioural, Sensory, Cognitive) on a 1–5 scale:\n• 1 (Rarely): 0–20%\n• 2 (Sometimes): 21–40%\n• 3 (Frequently): 41–60%\n• 4 (Mostly): 61–80%\n• 5 (Always): 81–100%"
+        },
+        {
+          "title": "Understanding the Results",
+          "body": "Scores summed (Min 40, Max 200):\n• Below 70 → No Autism\n• 70–106 → Mild Autism\n• 107–153 → Moderate Autism\n• Above 153 → Severe Autism"
+        }
+      ],
+      "scoringReference": "Scoring Reference",
+      "startAssessment": "Start Assessment"
+    },
+    "form": {
+      "progress": "Progress",
+      "patientInfo": "Patient Information",
+      "prefilled": "✓ Pre-filled from student record",
+      "fields": {
+        "name": "Name of the Child *",
+        "namePlaceholder": "Full name",
+        "gender": "Gender",
+        "genderPlaceholder": "e.g. Male / Female",
+        "age": "Age",
+        "agePlaceholder": "e.g. 5 years",
+        "dob": "D.O.B",
+        "examiner": "Examiner *",
+        "examinerPlaceholder": "Clinician name",
+        "date": "Date"
+      },
+      "domain": "Domain",
+      "rateScale": "Rate 1 (Rarely) → 5 (Always)",
+      "selected": "Selected",
+      "previous": "Previous",
+      "nextDomain": "Next Domain",
+      "submitAssessment": "Submit Assessment",
+      "errorFillRequired": "Please fill Child's Name and Examiner before submitting.",
+      "errorRateAll": "Please rate all 40 items. {{remaining}} remaining.",
+      "scoreLabels": {
+        "1": "Rarely",
+        "2": "Sometimes",
+        "3": "Frequently",
+        "4": "Mostly",
+        "5": "Always"
+      },
+      "scorePct": {
+        "1": "0–20%",
+        "2": "21–40%",
+        "3": "41–60%",
+        "4": "61–80%",
+        "5": "81–100%"
+      }
+    },
+    "results": {
+      "savingResults": "Saving results to student record…",
+      "savedSuccess": "Results saved to student record successfully.",
+      "scoreRange": "Score range: {{range}} · Max: 200",
+      "child": "Child",
+      "examiner": "Examiner",
+      "test": "Test",
+      "severityScale": "Severity Scale",
+      "domainBreakdown": "Domain Breakdown",
+      "newAssessment": "New Assessment",
+      "backToStudent": "Back to Student",
+      "backToStudents": "Back to Students",
+      "classify": {
+        "noAutism": "No Autism",
+        "mildAutism": "Mild Autism",
+        "moderateAutism": "Moderate Autism",
+        "severeAutism": "Severe Autism"
+      }
+    }
+  },
+  "languageSwitcher": {
+    "label": "Language"
+  }
+}
