@@ -1,13 +1,27 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { useParams, NavLink } from "react-router-dom";
-import { studentsData } from "@/data/students";
-import { ArrowLeft, Clock, CheckCircle2, ChevronDown, ChevronUp, AlertCircle, Filter, Plus } from "lucide-react";
+import { useTaskStore } from "@/store/useTaskStore";
+import { useStudentStore } from "@/store/useStudentStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import {
+  ArrowLeft,
+  Clock,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  AlertCircle,
+  Filter,
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  CheckCheck,
+  RefreshCw,
+} from "lucide-react";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,49 +32,134 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const TaskItem = ({ task }) => {
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const STATUS_STYLES = {
+  Completed: {
+    badge: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+    icon: <CheckCircle2 className="h-5 w-5 text-green-500" />,
+  },
+  "In Progress": {
+    badge: "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400",
+    icon: <Clock className="h-5 w-5 text-orange-500" />,
+  },
+  Pending: {
+    badge: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
+    icon: <Clock className="h-5 w-5 text-gray-400" />,
+  },
+};
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+};
+
+// ─── Task Item ────────────────────────────────────────────────────────────────
+
+const TaskItem = ({ task, onEdit, onDelete, onStatusToggle, isSubmitting }) => {
   const [expanded, setExpanded] = useState(false);
-  const isCompleted = task.status === "Completed";
-  
-  // mock an assigned date if not exist
-  const dateStr = task.assignedDate || "Mar 20, 2026";
+  const style = STATUS_STYLES[task.status] || STATUS_STYLES["Pending"];
 
   return (
     <div className="group border border-border/50 rounded-md p-4 bg-background/40 hover:bg-accent hover:text-accent-foreground transition-colors shadow-sm mb-3">
-      <div 
-        className="flex items-start sm:items-center justify-between cursor-pointer flex-col sm:flex-row gap-2" 
-        onClick={() => setExpanded(!expanded)}
+      {/* Header row */}
+      <div
+        className="flex items-start sm:items-center justify-between cursor-pointer flex-col sm:flex-row gap-2"
+        onClick={() => setExpanded((prev) => !prev)}
       >
         <div className="flex items-center gap-3">
-          {isCompleted ? (
-            <CheckCircle2 className="h-5 w-5 text-green-500 group-hover:text-white dark:group-hover:text-white transition-colors" />
-          ) : (
-            <Clock className="h-5 w-5 text-orange-500 group-hover:text-white dark:group-hover:text-white transition-colors" />
-          )}
+          <span className="group-hover:opacity-80 transition-opacity">{style.icon}</span>
           <div>
-            <div className={`font-medium text-base group-hover:text-accent-foreground dark:group-hover:text-accent-foreground transition-colors ${isCompleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+            <div
+              className={`font-medium text-base transition-colors ${
+                task.status === "Completed"
+                  ? "text-muted-foreground line-through"
+                  : "text-foreground group-hover:text-accent-foreground"
+              }`}
+            >
               {task.title}
             </div>
-            <div className="text-xs text-muted-foreground group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90 mt-1 transition-colors">Assigned: {dateStr}</div>
+            <div className="text-xs text-muted-foreground group-hover:text-accent-foreground/80 mt-0.5 transition-colors">
+              Assigned: {formatDate(task.createdAt)}
+            </div>
           </div>
         </div>
-        
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-          <Badge variant={isCompleted ? "outline" : "default"} className={`text-xs font-normal border-transparent group-hover:bg-white/20 dark:group-hover:bg-white/20 group-hover:text-white dark:group-hover:text-white transition-colors ${isCompleted ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400'}`}>
-            {task.status || "Pending"}
+
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <Badge
+            variant="outline"
+            className={`text-xs font-normal border-transparent group-hover:bg-white/20 group-hover:text-white transition-colors ${style.badge}`}
+          >
+            {task.status}
           </Badge>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-accent-foreground dark:group-hover:text-accent-foreground transition-colors">
+
+          {/* Quick status cycle button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-white transition-colors"
+            title="Cycle status"
+            disabled={isSubmitting}
+            onClick={(e) => {
+              e.stopPropagation();
+              onStatusToggle(task);
+            }}
+          >
+            <CheckCheck className="h-3.5 w-3.5" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-white transition-colors"
+            title="Edit task"
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(task);
+            }}
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-red-400 transition-colors"
+            title="Delete task"
+            disabled={isSubmitting}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(task);
+            }}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-white transition-colors"
+          >
             {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
         </div>
       </div>
-      {expanded && (
-        <div className="mt-4 pt-3 ml-0 sm:ml-8 text-sm text-muted-foreground group-hover:text-accent-foreground/90 dark:group-hover:text-accent-foreground/90 whitespace-pre-wrap pl-3 border-l-2 border-gray-300 dark:border-gray-600 group-hover:border-white/50 dark:group-hover:border-white/50 transition-colors">
+
+      {/* Expanded description */}
+      {expanded && task.description && (
+        <div className="mt-4 pt-3 ml-0 sm:ml-8 text-sm text-muted-foreground group-hover:text-accent-foreground/90 whitespace-pre-wrap pl-3 border-l-2 border-gray-300 dark:border-gray-600 group-hover:border-white/50 transition-colors">
           {task.description}
         </div>
       )}
@@ -68,47 +167,237 @@ const TaskItem = ({ task }) => {
   );
 };
 
-export function StudentTasksPage() {
-  const { id } = useParams();
-  const [filter, setFilter] = useState("All");
-  
-  const student = useMemo(() => studentsData.find(s => s.id === id), [id]);
-  const [tasks, setTasks] = useState([]);
-  
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [newTaskDesc, setNewTaskDesc] = useState("");
+// ─── Task Form Modal (shared for Add & Edit) ──────────────────────────────────
+
+const TaskFormModal = ({ open, onOpenChange, title, description, initialData, onSubmit, isSubmitting }) => {
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDesc, setTaskDesc] = useState("");
+  const [taskStatus, setTaskStatus] = useState("Pending");
 
   useEffect(() => {
-    if (student) {
-      setTasks(student.tasks || []);
+    if (open) {
+      setTaskTitle(initialData?.title || "");
+      setTaskDesc(initialData?.description || "");
+      setTaskStatus(initialData?.status || "Pending");
     }
-  }, [student]);
+  }, [open, initialData]);
 
-  const handleAddTask = () => {
-    if (!newTaskTitle || !newTaskDesc) return;
-
-    const newTask = {
-      id: `t${Date.now()}`,
-      title: newTaskTitle,
-      description: newTaskDesc,
-      status: "In Progress",
-      assignedDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    };
-
-    const updatedTasks = [...tasks, newTask];
-    setTasks(updatedTasks);
-    
-    if (student) {
-      student.tasks = updatedTasks;
-    }
-
-    setNewTaskTitle("");
-    setNewTaskDesc("");
-    setIsDialogOpen(false);
+  const handleSubmit = () => {
+    if (!taskTitle.trim()) return;
+    onSubmit({ title: taskTitle.trim(), description: taskDesc.trim(), status: taskStatus });
   };
 
-  if (!student) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[440px] bg-card text-card-foreground border-border">
+        <DialogHeader>
+          <DialogTitle className="text-foreground">{title}</DialogTitle>
+          {description && (
+            <DialogDescription className="text-muted-foreground">{description}</DialogDescription>
+          )}
+        </DialogHeader>
+
+        <div className="grid gap-4 py-4">
+          {/* Title */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="task-title" className="text-right text-foreground text-sm">
+              Title
+            </Label>
+            <Input
+              id="task-title"
+              placeholder="e.g., Morning Routine"
+              value={taskTitle}
+              onChange={(e) => setTaskTitle(e.target.value)}
+              className="col-span-3 border-border bg-background text-foreground placeholder:text-muted-foreground"
+            />
+          </div>
+
+          {/* Description */}
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="task-desc" className="text-right mt-2 text-foreground text-sm">
+              Details
+            </Label>
+            <textarea
+              id="task-desc"
+              placeholder="Task instructions or notes..."
+              value={taskDesc}
+              onChange={(e) => setTaskDesc(e.target.value)}
+              className="col-span-3 flex min-h-[90px] w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+            />
+          </div>
+
+          {/* Status */}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="task-status" className="text-right text-foreground text-sm">
+              Status
+            </Label>
+            <Select value={taskStatus} onValueChange={setTaskStatus}>
+              <SelectTrigger id="task-status" className="col-span-3 border-border bg-background text-foreground">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border text-popover-foreground">
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="In Progress">In Progress</SelectItem>
+                <SelectItem value="Completed">Completed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
+            className="border-border text-foreground hover:bg-accent"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            onClick={handleSubmit}
+            disabled={!taskTitle.trim() || isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…
+              </>
+            ) : (
+              "Save Task"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// ─── Delete Confirm Modal ─────────────────────────────────────────────────────
+
+const DeleteConfirmModal = ({ open, onOpenChange, task, onConfirm, isSubmitting }) => (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent className="sm:max-w-[380px] bg-card text-card-foreground border-border">
+      <DialogHeader>
+        <DialogTitle className="text-foreground flex items-center gap-2">
+          <Trash2 className="h-5 w-5 text-red-500" /> Delete Task
+        </DialogTitle>
+        <DialogDescription className="text-muted-foreground pt-1">
+          Are you sure you want to delete{" "}
+          <span className="font-medium text-foreground">"{task?.title}"</span>? This cannot be undone.
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter className="gap-2">
+        <Button
+          variant="outline"
+          onClick={() => onOpenChange(false)}
+          disabled={isSubmitting}
+          className="border-border text-foreground hover:bg-accent"
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="destructive"
+          onClick={onConfirm}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Deleting…
+            </>
+          ) : (
+            "Delete"
+          )}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
+);
+
+// ─── Status cycle order ───────────────────────────────────────────────────────
+const STATUS_CYCLE = ["Pending", "In Progress", "Completed"];
+const nextStatus = (current) =>
+  STATUS_CYCLE[(STATUS_CYCLE.indexOf(current) + 1) % STATUS_CYCLE.length];
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
+
+export function StudentTasksPage() {
+  const { id } = useParams();
+  const token = useAuthStore((s) => s.token);
+
+  // Student (from existing student store)
+  const { fetchStudentById, currentStudent, isLoadingOne: isLoadingStudent } = useStudentStore();
+
+  // Tasks
+  const { tasks, isLoading, isSubmitting, error, fetchTasks, createTask, updateTask, deleteTask, clearTasks } =
+    useTaskStore();
+
+  const [filter, setFilter] = useState("All");
+
+  // ── Modals ────────────────────────────────────────────────────────────────
+  const [addOpen, setAddOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState(null); // task being edited
+  const [deleteTarget, setDeleteTarget] = useState(null); // task to delete
+
+  // ── Load data on mount ────────────────────────────────────────────────────
+  useEffect(() => {
+    if (id && token) {
+      fetchStudentById(token, id);
+      fetchTasks(token, id);
+    }
+    return () => clearTasks();
+  }, [id, token]);
+
+  // ── Handlers ──────────────────────────────────────────────────────────────
+
+  const handleAdd = useCallback(
+    async (payload) => {
+      const result = await createTask(token, id, payload);
+      if (result.success) setAddOpen(false);
+    },
+    [token, id, createTask]
+  );
+
+  const handleEdit = useCallback(
+    async (payload) => {
+      if (!editTarget) return;
+      const result = await updateTask(token, id, editTarget._id, payload);
+      if (result.success) setEditTarget(null);
+    },
+    [token, id, editTarget, updateTask]
+  );
+
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return;
+    const result = await deleteTask(token, id, deleteTarget._id);
+    if (result.success) setDeleteTarget(null);
+  }, [token, id, deleteTarget, deleteTask]);
+
+  const handleStatusToggle = useCallback(
+    async (task) => {
+      await updateTask(token, id, task._id, { status: nextStatus(task.status) });
+    },
+    [token, id, updateTask]
+  );
+
+  // ── Derived ──────────────────────────────────────────────────────────────
+
+  const filteredTasks = useMemo(
+    () => tasks.filter((t) => filter === "All" || t.status === filter),
+    [tasks, filter]
+  );
+
+  // ── Loading student ───────────────────────────────────────────────────────
+
+  if (isLoadingStudent) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-in fade-in">
+        <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+        <p className="text-muted-foreground">Loading student…</p>
+      </div>
+    );
+  }
+
+  if (!currentStudent && !isLoadingStudent) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-8 text-center animate-in fade-in zoom-in duration-500">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
@@ -126,10 +415,11 @@ export function StudentTasksPage() {
     );
   }
 
-  const filteredTasks = tasks.filter(t => filter === "All" || t.status === filter);
+  const student = currentStudent;
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 pb-12 w-full max-w-5xl mx-auto">
+      {/* ── Header ── */}
       <header className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
         <div className="flex items-center gap-4">
           <NavLink
@@ -139,73 +429,56 @@ export function StudentTasksPage() {
             <ArrowLeft className="w-5 h-5" />
           </NavLink>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight flex items-center gap-3">
-              Tasks: {student.name}
+            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
+              Tasks: {student?.name}
             </h1>
             <p className="text-muted-foreground mt-1">Review assigned task progress and history</p>
           </div>
         </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2  ">
-              <Plus className="h-4 w-4" /> Add Task
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px] bg-card text-card-foreground border-border">
-            <DialogHeader>
-              <DialogTitle className="text-foreground">Assign New Task to {student.name}</DialogTitle>
-              <DialogDescription className="text-muted-foreground">
-                Create a new task and assign it directly.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="title" className="text-right text-foreground">
-                  Title
-                </Label>
-                <Input
-                  id="title"
-                  placeholder="e.g., Morning Routine"
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  className="col-span-3 border-border bg-background text-foreground placeholder:text-muted-foreground"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-start gap-4">
-                <Label htmlFor="description" className="text-right mt-2 text-foreground">
-                  Description
-                </Label>
-                <textarea
-                  id="description"
-                  placeholder="Task details and instructions..."
-                  value={newTaskDesc}
-                  onChange={(e) => setNewTaskDesc(e.target.value)}
-                  className="col-span-3 flex min-h-[80px] w-full rounded-md border border-border bg-background px-3 py-2 text-sm ring-offset-white dark:ring-offset-gray-900 placeholder:text-muted-foreground text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button type="submit" onClick={handleAddTask} disabled={!newTaskTitle || !newTaskDesc} className="  ">
-                Assign Task
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+
+        <div className="flex items-center gap-2">
+          {/* Refresh */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 border-border text-muted-foreground hover:text-foreground"
+            onClick={() => fetchTasks(token, id)}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+
+          {/* Add Task */}
+          <Button className="gap-2" onClick={() => setAddOpen(true)}>
+            <Plus className="h-4 w-4" /> Add Task
+          </Button>
+        </div>
       </header>
 
+      {/* ── Error Banner ── */}
+      {error && (
+        <div className="flex items-center gap-3 rounded-md border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/30 p-3 text-sm text-red-700 dark:text-red-400">
+          <AlertCircle className="h-4 w-4 flex-shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {/* ── Task List Card ── */}
       <Card className="border-border bg-card text-card-foreground/50 shadow-sm">
         <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 border-b border-border gap-4">
           <div className="flex items-center gap-2">
-             <Filter className="w-4 h-4 text-muted-foreground" />
-             <span className="text-sm font-medium text-foreground">Filter Status:</span>
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">Filter Status:</span>
           </div>
           <div className="flex flex-wrap gap-2">
-            {["All", "In Progress", "Completed", "Pending"].map((f) => (
-              <Badge 
+            {["All", "Pending", "In Progress", "Completed"].map((f) => (
+              <Badge
                 key={f}
                 variant={filter === f ? "default" : "outline"}
-                className={`cursor-pointer ${filter === f ? '' : 'hover:bg-accent hover:text-accent-foreground text-muted-foreground border-border'}`}
+                className={`cursor-pointer ${
+                  filter === f ? "" : "hover:bg-accent hover:text-accent-foreground text-muted-foreground border-border"
+                }`}
                 onClick={() => setFilter(f)}
               >
                 {f}
@@ -213,24 +486,82 @@ export function StudentTasksPage() {
             ))}
           </div>
         </CardHeader>
+
         <CardContent className="pt-6">
-          {filteredTasks.length > 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center py-12 text-muted-foreground gap-3">
+              <Loader2 className="h-8 w-8 animate-spin" />
+              <p className="text-sm">Loading tasks…</p>
+            </div>
+          ) : filteredTasks.length > 0 ? (
             <div className="flex flex-col">
-              {filteredTasks.map(task => (
-                <TaskItem key={task.id} task={task} />
+              {filteredTasks.map((task) => (
+                <TaskItem
+                  key={task._id}
+                  task={task}
+                  onEdit={(t) => setEditTarget(t)}
+                  onDelete={(t) => setDeleteTarget(t)}
+                  onStatusToggle={handleStatusToggle}
+                  isSubmitting={isSubmitting}
+                />
               ))}
             </div>
           ) : (
             <div className="text-center py-12 border border-dashed border-border rounded-lg bg-muted/30">
               <Clock className="mx-auto h-8 w-8 text-muted-foreground mb-3" />
-              <p className="text-muted-foreground font-medium">No tasks found for "{filter}" status</p>
-              <Button variant="link" className="mt-2 text-muted-foreground" onClick={() => setFilter("All")}>
-                Clear filters
-              </Button>
+              <p className="text-muted-foreground font-medium">
+                No tasks found{filter !== "All" ? ` for "${filter}" status` : ""}
+              </p>
+              {filter !== "All" ? (
+                <Button
+                  variant="link"
+                  className="mt-2 text-muted-foreground"
+                  onClick={() => setFilter("All")}
+                >
+                  Clear filters
+                </Button>
+              ) : (
+                <Button
+                  variant="link"
+                  className="mt-2 text-muted-foreground"
+                  onClick={() => setAddOpen(true)}
+                >
+                  Assign the first task
+                </Button>
+              )}
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* ── Add Task Modal ── */}
+      <TaskFormModal
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        title={`Assign New Task to ${student?.name}`}
+        description="Create a new task and assign it directly."
+        onSubmit={handleAdd}
+        isSubmitting={isSubmitting}
+      />
+
+      {/* ── Edit Task Modal ── */}
+      <TaskFormModal
+        open={!!editTarget}
+        onOpenChange={(v) => !v && setEditTarget(null)}
+        title="Edit Task"
+        initialData={editTarget}
+        onSubmit={handleEdit}
+        isSubmitting={isSubmitting}
+      />
+
+      {/* ── Delete Confirm Modal ── */}
+      <DeleteConfirmModal
+        open={!!deleteTarget}
+        onOpenChange={(v) => !v && setDeleteTarget(null)}
+        task={deleteTarget}
+        onConfirm={handleDelete}
+        isSubmitting={isSubmitting}
+      />
     </div>
   );
 }
