@@ -50,15 +50,15 @@ import {
 const STATUS_STYLES = {
   Completed: {
     badge: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
-    icon: <CheckCircle2 className="h-5 w-5 text-green-500" />,
+    icon: <CheckCircle2 className="h-8 w-8 text-green-500" />,
   },
   "In Progress": {
     badge: "bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400",
-    icon: <Clock className="h-5 w-5 text-orange-500" />,
+    icon: <Clock className="h-8 w-8 text-orange-500" />,
   },
   Pending: {
     badge: "bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400",
-    icon: <Clock className="h-5 w-5 text-gray-400" />,
+    icon: <Clock className="h-8 w-8 text-gray-400" />,
   },
 };
 
@@ -85,11 +85,10 @@ const TaskItem = ({ task, onEdit, onDelete, onStatusToggle, isSubmitting }) => {
           <span className="group-hover:opacity-80 transition-opacity">{style.icon}</span>
           <div>
             <div
-              className={`font-medium text-base transition-colors ${
-                task.status === "Completed"
-                  ? "text-muted-foreground line-through"
-                  : "text-foreground group-hover:text-accent-foreground"
-              }`}
+              className={`font-medium text-base transition-colors ${task.status === "Completed"
+                ? "text-muted-foreground line-through"
+                : "text-foreground group-hover:text-accent-foreground"
+                }`}
             >
               {task.title}
             </div>
@@ -116,7 +115,7 @@ const TaskItem = ({ task, onEdit, onDelete, onStatusToggle, isSubmitting }) => {
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-white transition-colors"
+            className="h-10 w-10 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-white transition-colors"
             title="Cycle status"
             disabled={isSubmitting}
             onClick={(e) => {
@@ -124,26 +123,26 @@ const TaskItem = ({ task, onEdit, onDelete, onStatusToggle, isSubmitting }) => {
               onStatusToggle(task);
             }}
           >
-            <CheckCheck className="h-3.5 w-3.5" />
+            <CheckCheck className="h-5 w-5" />
           </Button>
 
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-white transition-colors"
+            className="h-10 w-10 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-white transition-colors"
             title="Edit task"
             onClick={(e) => {
               e.stopPropagation();
               onEdit(task);
             }}
           >
-            <Pencil className="h-3.5 w-3.5" />
+            <Pencil className="h-5 w-5" />
           </Button>
 
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-red-400 transition-colors"
+            className="h-10 w-10 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-red-400 transition-colors"
             title="Delete task"
             disabled={isSubmitting}
             onClick={(e) => {
@@ -151,15 +150,15 @@ const TaskItem = ({ task, onEdit, onDelete, onStatusToggle, isSubmitting }) => {
               onDelete(task);
             }}
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash2 className="h-5 w-5" />
           </Button>
 
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 w-7 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-white transition-colors"
+            className="h-10 w-10 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-white transition-colors"
           >
-            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {expanded ? <ChevronUp className="h-6 w-6" /> : <ChevronDown className="h-6 w-6" />}
           </Button>
         </div>
       </div>
@@ -564,9 +563,8 @@ export function StudentTasksPage() {
               <Badge
                 key={f}
                 variant={filter === f ? "default" : "outline"}
-                className={`cursor-pointer ${
-                  filter === f ? "" : "hover:bg-accent hover:text-accent-foreground text-muted-foreground border-border"
-                }`}
+                className={`cursor-pointer ${filter === f ? "" : "hover:bg-accent hover:text-accent-foreground text-muted-foreground border-border"
+                  }`}
                 onClick={() => setFilter(f)}
               >
                 {f}
