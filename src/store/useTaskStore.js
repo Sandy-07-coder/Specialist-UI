@@ -2,7 +2,28 @@ import { create } from 'zustand';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-export const useTaskStore = create((set, get) => ({
+// ─── Helper ───────────────────────────────────────────────────────────────────
+/**
+ * Build either a FormData (when imageFile is present) or a plain JSON body.
+ * Returns { body, headers } ready to be spread into fetch options.
+ */
+const buildRequestBody = (fields, imageFile) => {
+  if (imageFile) {
+    const form = new FormData();
+    Object.entries(fields).forEach(([k, v]) => {
+      if (v !== undefined && v !== null) form.append(k, v);
+    });
+    form.append('image', imageFile);
+    // Do NOT set Content-Type — browser sets it with the correct multipart boundary.
+    return { body: form, headers: {} };
+  }
+  return {
+    body: JSON.stringify(fields),
+    headers: { 'Content-Type': 'application/json' },
+  };
+};
+
+export const useTaskStore = create((set) => ({
   // ── State ──────────────────────────────────────────────────────────────────
   tasks: [],           // tasks for the currently viewed student
   studentId: null,     // which student these tasks belong to (for cache invalidation)
@@ -38,21 +59,21 @@ export const useTaskStore = create((set, get) => ({
 
   /**
    * Assign a new task to the student.
-   * @param {string} token     - JWT bearer token
-   * @param {string} studentId - MongoDB ObjectId of the student
-   * @param {{ title: string, description: string, status?: string }} payload
+   * @param {string} token      - JWT bearer token
+   * @param {string} studentId  - MongoDB ObjectId of the student
+   * @param {{ title: string, description?: string, status?: string }} payload
+   * @param {File|null}  imageFile - Optional image file to upload
    * @returns {{ success: boolean, task?: object, error?: string }}
    */
-  createTask: async (token, studentId, payload) => {
+  createTask: async (token, studentId, payload, imageFile = null) => {
     set({ isSubmitting: true, error: null });
     try {
+      const { body, headers } = buildRequestBody(payload, imageFile);
+
       const res = await fetch(`${API_BASE}/students/${studentId}/tasks`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
+        headers: { Authorization: `Bearer ${token}`, ...headers },
+        body,
       });
       const data = await res.json();
 
@@ -75,23 +96,23 @@ export const useTaskStore = create((set, get) => ({
   },
 
   /**
-   * Update a task's title, description, or status.
-   * @param {string} token     - JWT bearer token
+   * Update a task's title, description, status, or image.
+   * @param {string} token
    * @param {string} studentId
    * @param {string} taskId    - MongoDB ObjectId of the task
    * @param {{ title?: string, description?: string, status?: string }} updates
+   * @param {File|null} imageFile - Optional new image file
    * @returns {{ success: boolean, task?: object, error?: string }}
    */
-  updateTask: async (token, studentId, taskId, updates) => {
+  updateTask: async (token, studentId, taskId, updates, imageFile = null) => {
     set({ isSubmitting: true, error: null });
     try {
+      const { body, headers } = buildRequestBody(updates, imageFile);
+
       const res = await fetch(`${API_BASE}/students/${studentId}/tasks/${taskId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(updates),
+        headers: { Authorization: `Bearer ${token}`, ...headers },
+        body,
       });
       const data = await res.json();
 

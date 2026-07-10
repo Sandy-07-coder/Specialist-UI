@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useStudentStore } from "@/store/useStudentStore";
 import { useTaskStore } from "@/store/useTaskStore";
@@ -21,6 +21,8 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock,
+  ImagePlus,
+  X,
 } from "lucide-react";
 import {
   Dialog,
@@ -160,25 +162,49 @@ const AddTaskModal = ({ open, onOpenChange, students, token }) => {
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDesc, setTaskDesc] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const fileInputRef = useRef(null);
 
   const reset = () => {
     setSelectedStudentId("");
     setTaskTitle("");
     setTaskDesc("");
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(null);
+    setImagePreview("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearImage = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(null);
+    setImagePreview("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSubmit = useCallback(async () => {
     if (!selectedStudentId || !taskTitle.trim()) return;
-    const result = await createTask(token, selectedStudentId, {
-      title: taskTitle.trim(),
-      description: taskDesc.trim(),
-      status: "Pending",
-    });
+    const result = await createTask(
+      token,
+      selectedStudentId,
+      { title: taskTitle.trim(), description: taskDesc.trim(), status: "Pending" },
+      imageFile
+    );
     if (result.success) {
       reset();
       onOpenChange(false);
     }
-  }, [token, selectedStudentId, taskTitle, taskDesc, createTask, onOpenChange]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, selectedStudentId, taskTitle, taskDesc, imageFile, createTask, onOpenChange]);
 
   return (
     <Dialog
@@ -188,7 +214,7 @@ const AddTaskModal = ({ open, onOpenChange, students, token }) => {
         onOpenChange(v);
       }}
     >
-      <DialogContent className="sm:max-w-[440px] bg-card text-card-foreground border-border">
+      <DialogContent className="sm:max-w-[480px] bg-card text-card-foreground border-border">
         <DialogHeader>
           <DialogTitle className="text-foreground">Assign New Task</DialogTitle>
           <DialogDescription className="text-muted-foreground">
@@ -246,6 +272,52 @@ const AddTaskModal = ({ open, onOpenChange, students, token }) => {
               onChange={(e) => setTaskDesc(e.target.value)}
               className="col-span-3 flex min-h-[80px] w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
             />
+          </div>
+
+          {/* Image (optional) */}
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label className="text-right mt-2 text-foreground text-sm">
+              Image
+              <span className="block text-xs text-muted-foreground font-normal">optional</span>
+            </Label>
+            <div className="col-span-3 space-y-2">
+              {imagePreview ? (
+                <div className="relative w-full rounded-md overflow-hidden border border-border/60">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full max-h-40 object-contain bg-muted/20"
+                  />
+                  <button
+                    type="button"
+                    onClick={clearImage}
+                    className="absolute top-1.5 right-1.5 rounded-full bg-background/80 border border-border p-1 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                    title="Remove image"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 w-full rounded-md border border-dashed border-border px-4 py-3 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground hover:bg-muted/30 transition-colors"
+                >
+                  <ImagePlus className="h-4 w-4" />
+                  Click to attach a reference image
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpg,image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              {imageFile && (
+                <p className="text-xs text-muted-foreground truncate">{imageFile.name}</p>
+              )}
+            </div>
           </div>
         </div>
 

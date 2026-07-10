@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { useParams, NavLink } from "react-router-dom";
 import { useTaskStore } from "@/store/useTaskStore";
 import { useStudentStore } from "@/store/useStudentStore";
@@ -17,6 +17,8 @@ import {
   Loader2,
   CheckCheck,
   RefreshCw,
+  ImagePlus,
+  X,
 } from "lucide-react";
 import {
   Card,
@@ -91,8 +93,13 @@ const TaskItem = ({ task, onEdit, onDelete, onStatusToggle, isSubmitting }) => {
             >
               {task.title}
             </div>
-            <div className="text-xs text-muted-foreground group-hover:text-accent-foreground/80 mt-0.5 transition-colors">
+            <div className="text-xs text-muted-foreground group-hover:text-accent-foreground/80 mt-0.5 transition-colors flex items-center gap-2">
               Assigned: {formatDate(task.createdAt)}
+              {task.imageUrl && (
+                <span className="inline-flex items-center gap-1 text-primary/70">
+                  <ImagePlus className="h-3 w-3" /> Image
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -157,10 +164,21 @@ const TaskItem = ({ task, onEdit, onDelete, onStatusToggle, isSubmitting }) => {
         </div>
       </div>
 
-      {/* Expanded description */}
-      {expanded && task.description && (
-        <div className="mt-4 pt-3 ml-0 sm:ml-8 text-sm text-muted-foreground group-hover:text-accent-foreground/90 whitespace-pre-wrap pl-3 border-l-2 border-gray-300 dark:border-gray-600 group-hover:border-white/50 transition-colors">
-          {task.description}
+      {/* Expanded detail */}
+      {expanded && (
+        <div className="mt-4 pt-3 ml-0 sm:ml-8 pl-3 border-l-2 border-gray-300 dark:border-gray-600 group-hover:border-white/50 transition-colors space-y-3">
+          {task.description && (
+            <p className="text-sm text-muted-foreground group-hover:text-accent-foreground/90 whitespace-pre-wrap">
+              {task.description}
+            </p>
+          )}
+          {task.imageUrl && (
+            <img
+              src={task.imageUrl}
+              alt="Task reference"
+              className="rounded-md max-h-64 w-auto object-contain border border-border/50"
+            />
+          )}
         </div>
       )}
     </div>
@@ -173,23 +191,47 @@ const TaskFormModal = ({ open, onOpenChange, title, description, initialData, on
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDesc, setTaskDesc] = useState("");
   const [taskStatus, setTaskStatus] = useState("Pending");
+  const [imageFile, setImageFile] = useState(null);       // File object
+  const [imagePreview, setImagePreview] = useState("");   // local object URL for preview
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (open) {
       setTaskTitle(initialData?.title || "");
       setTaskDesc(initialData?.description || "");
       setTaskStatus(initialData?.status || "Pending");
+      setImageFile(null);
+      setImagePreview("");
     }
   }, [open, initialData]);
 
+  // Revoke the object URL when a new one is created to avoid memory leaks
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const clearImage = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImageFile(null);
+    setImagePreview("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
   const handleSubmit = () => {
     if (!taskTitle.trim()) return;
-    onSubmit({ title: taskTitle.trim(), description: taskDesc.trim(), status: taskStatus });
+    onSubmit({ title: taskTitle.trim(), description: taskDesc.trim(), status: taskStatus }, imageFile);
   };
+
+  // Show existing image from DB when editing (if no new file picked)
+  const displayImage = imagePreview || (initialData?.imageUrl && !imageFile ? initialData.imageUrl : "");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[440px] bg-card text-card-foreground border-border">
+      <DialogContent className="sm:max-w-[480px] bg-card text-card-foreground border-border">
         <DialogHeader>
           <DialogTitle className="text-foreground">{title}</DialogTitle>
           {description && (
@@ -241,6 +283,52 @@ const TaskFormModal = ({ open, onOpenChange, title, description, initialData, on
                 <SelectItem value="Completed">Completed</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Image (optional) */}
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label className="text-right mt-2 text-foreground text-sm">
+              Image
+              <span className="block text-xs text-muted-foreground font-normal">optional</span>
+            </Label>
+            <div className="col-span-3 space-y-2">
+              {displayImage ? (
+                <div className="relative w-full rounded-md overflow-hidden border border-border/60">
+                  <img
+                    src={displayImage}
+                    alt="Task preview"
+                    className="w-full max-h-40 object-contain bg-muted/20"
+                  />
+                  <button
+                    type="button"
+                    onClick={clearImage}
+                    className="absolute top-1.5 right-1.5 rounded-full bg-background/80 border border-border p-1 hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                    title="Remove image"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 w-full rounded-md border border-dashed border-border px-4 py-3 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground hover:bg-muted/30 transition-colors"
+                >
+                  <ImagePlus className="h-4 w-4" />
+                  Click to attach a reference image
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpg,image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              {imageFile && (
+                <p className="text-xs text-muted-foreground truncate">{imageFile.name}</p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -350,17 +438,17 @@ export function StudentTasksPage() {
   // ── Handlers ──────────────────────────────────────────────────────────────
 
   const handleAdd = useCallback(
-    async (payload) => {
-      const result = await createTask(token, id, payload);
+    async (payload, imageFile) => {
+      const result = await createTask(token, id, payload, imageFile);
       if (result.success) setAddOpen(false);
     },
     [token, id, createTask]
   );
 
   const handleEdit = useCallback(
-    async (payload) => {
+    async (payload, imageFile) => {
       if (!editTarget) return;
-      const result = await updateTask(token, id, editTarget._id, payload);
+      const result = await updateTask(token, id, editTarget._id, payload, imageFile);
       if (result.success) setEditTarget(null);
     },
     [token, id, editTarget, updateTask]
