@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, NavLink } from "react-router-dom";
 import {
   ArrowLeft,
@@ -14,6 +14,14 @@ import {
   CheckCircle2,
   Clock,
   BadgeAlert,
+  Lock,
+  Mail,
+  Copy,
+  Check,
+  RefreshCw,
+  Users,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   Card,
@@ -24,6 +32,9 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useStudentStore } from "@/store/useStudentStore";
 import { useAuthStore } from "@/store";
 
@@ -89,13 +100,81 @@ export function StudentDetailsPage() {
     isLoadingOne,
     error,
     fetchStudentById,
+    fetchStudentCredentials,
+    setStudentCredentials,
   } = useStudentStore();
+
+  // ── Credentials state ──────────────────────────────────────────────────────
+  const [creds, setCreds] = useState(null);          // fetched from API
+  const [credsLoading, setCredsLoading] = useState(false);
+  const [credsError, setCredsError]   = useState('');
+  const [credsSaving, setCredsSaving] = useState(false);
+  const [credsSaved,  setCredsSaved]  = useState(false);
+
+  const [editEmail,    setEditEmail]    = useState('');
+  const [editUsername, setEditUsername] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [showPass,     setShowPass]     = useState(false);
+  const [copiedField,  setCopiedField]  = useState(null); // 'username' | 'password'
 
   useEffect(() => {
     if (token && id) {
       fetchStudentById(token, id);
     }
   }, [token, id, fetchStudentById]);
+
+  // Load credentials when student is loaded
+  useEffect(() => {
+    if (!token || !id) return;
+    setCredsLoading(true);
+    fetchStudentCredentials(token, id).then((res) => {
+      if (res.success) {
+        setCreds(res.credentials);
+        setEditEmail(res.credentials.email || '');
+        setEditUsername(res.credentials.username || '');
+      }
+      setCredsLoading(false);
+    });
+  }, [token, id, fetchStudentCredentials]);
+
+  const handleCopy = (text, field) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    });
+  };
+
+  const handleSaveCredentials = async (extra = {}) => {
+    setCredsError('');
+    setCredsSaving(true);
+    setCredsSaved(false);
+
+    const payload = {
+      email: editEmail.trim(),
+      ...(editUsername.trim() ? { username: editUsername.trim() } : {}),
+      ...(editPassword.trim() ? { password: editPassword.trim() } : {}),
+      ...extra,
+    };
+
+    const res = await setStudentCredentials(token, id, payload);
+    setCredsSaving(false);
+
+    if (!res.success) {
+      setCredsError(res.error || 'Failed to save credentials.');
+      return;
+    }
+
+    setCreds(prev => ({
+      ...prev,
+      username: res.data.username,
+      email:    res.data.email,
+      defaultPassword: res.data.defaultPassword,
+    }));
+    setEditUsername(res.data.username);
+    setEditPassword('');
+    setCredsSaved(true);
+    setTimeout(() => setCredsSaved(false), 3000);
+  };
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (isLoadingOne) {
@@ -400,6 +479,154 @@ export function StudentDetailsPage() {
               </p>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Account Setup / Credentials ──────────────────────────────────────── */}
+      <Card className="border-border bg-card shadow-sm">
+        <CardHeader className="border-b border-border pb-4">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Lock className="w-4 h-4 text-purple-500" />
+            Account Setup
+          </CardTitle>
+          <CardDescription className="flex items-center gap-2">
+            Manage the student's SpecialKid-UI login credentials.
+            {creds && (
+              <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full ${
+                creds.hasCredentials
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                  : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+              }`}>
+                {creds.hasCredentials ? <CheckCircle2 className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                {creds.hasCredentials ? 'Active' : 'Not set up'}
+              </span>
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-5 space-y-6">
+
+          {credsLoading && (
+            <div className="flex items-center gap-2 text-muted-foreground text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" /> Loading credentials…
+            </div>
+          )}
+
+          {!credsLoading && creds && (
+            <>
+              {/* Current credentials summary */}
+              {creds.hasCredentials && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="rounded-xl bg-muted/60 border border-border p-3">
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">Username</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-mono text-sm font-bold text-foreground flex-1 truncate">{creds.username}</p>
+                      <button onClick={() => handleCopy(creds.username, 'username')} className="text-muted-foreground hover:text-primary transition-colors shrink-0">
+                        {copiedField === 'username' ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-muted/60 border border-border p-3">
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">Default Password</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-mono text-sm font-bold text-foreground flex-1">{creds.defaultPassword}</p>
+                      <button onClick={() => handleCopy(creds.defaultPassword, 'password')} className="text-muted-foreground hover:text-primary transition-colors shrink-0">
+                        {copiedField === 'password' ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-muted/60 border border-border p-3">
+                    <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">Parent / Guardian</p>
+                    <p className="text-sm font-semibold text-foreground truncate">{creds.parentName || '—'}</p>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{creds.email || 'No email set'}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Edit form */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-semibold text-foreground">
+                  {creds.hasCredentials ? 'Update Credentials' : 'Set Up Login Access'}
+                </h4>
+
+                {credsError && (
+                  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-2.5 rounded-xl text-sm">
+                    {credsError}
+                  </div>
+                )}
+                {credsSaved && (
+                  <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 px-4 py-2.5 rounded-xl text-sm flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> Credentials saved successfully.
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  {/* Email */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="creds-email" className="text-foreground flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5 text-muted-foreground" /> Parent Email
+                    </Label>
+                    <Input id="creds-email" type="email"
+                      value={editEmail} onChange={(e) => setEditEmail(e.target.value)}
+                      placeholder="parent@email.com"
+                      className="bg-muted border-border text-foreground" />
+                  </div>
+
+                  {/* Username with regenerate */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="creds-username" className="text-foreground flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5 text-muted-foreground" /> Username
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input id="creds-username"
+                        value={editUsername} onChange={(e) => setEditUsername(e.target.value)}
+                        placeholder="auto-generated"
+                        className="bg-muted border-border text-foreground" />
+                      <Button
+                        type="button" size="icon" variant="outline"
+                        title="Re-generate from student + parent name"
+                        className="shrink-0"
+                        onClick={() => handleSaveCredentials({ regenerateUsername: true })}
+                        disabled={credsSaving}
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Format: student_parent (e.g. liam_sarah). A 2-digit suffix is added if taken.</p>
+                  </div>
+
+                  {/* New password */}
+                  <div className="space-y-1.5 md:col-span-2">
+                    <Label htmlFor="creds-password" className="text-foreground flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-muted-foreground" /> New Password
+                      <span className="text-muted-foreground font-normal text-xs">(leave blank to keep current)</span>
+                    </Label>
+                    <div className="relative max-w-sm">
+                      <Input id="creds-password" type={showPass ? 'text' : 'password'}
+                        value={editPassword} onChange={(e) => setEditPassword(e.target.value)}
+                        placeholder={`Default: ${creds.defaultPassword}`}
+                        className="bg-muted border-border text-foreground pr-10" />
+                      <button type="button" onClick={() => setShowPass(p => !p)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
+                        {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Default: first 4 chars of first name + birth year ({creds.defaultPassword})
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button onClick={() => handleSaveCredentials()} disabled={credsSaving}>
+                    {credsSaving ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving…</>
+                    ) : creds.hasCredentials ? 'Save Credentials' : 'Activate Account'}
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
