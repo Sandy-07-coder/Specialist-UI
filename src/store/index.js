@@ -11,4 +11,5 @@ export { useThemeStore } from './useThemeStore';
 export { useUIStore } from './useUIStore';
 export { useUserStore } from './useUserStore';
 export { useStudentStore } from './useStudentStore';
+export { useTaskStore } from './useTaskStore';
 
