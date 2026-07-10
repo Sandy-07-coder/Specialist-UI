@@ -119,6 +119,12 @@ export const useStudentStore = create((set, get) => ({
    * @param {string} studentId
    * @param {{ assessmentType, assessmentScore, assessmentSeverity }} payload
    */
+  /**
+   * Save assessment result for a student.
+   * @param {string} token
+   * @param {string} studentId
+   * @param {{ assessmentType, assessmentScore, assessmentSeverity }} payload
+   */
   saveAssessmentResult: async (token, studentId, payload) => {
     try {
       const res = await fetch(`${API_BASE}/students/${studentId}/assessment`, {
@@ -141,6 +147,51 @@ export const useStudentStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Fetch current credentials (username, email, defaultPassword) for a student.
+   * @param {string} token
+   * @param {string} studentId
+   * @returns {{ success: boolean, credentials?: object, error?: string }}
+   */
+  fetchStudentCredentials: async (token, studentId) => {
+    try {
+      const res = await fetch(`${API_BASE}/students/${studentId}/credentials`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.message };
+      return { success: true, credentials: data };
+    } catch {
+      return { success: false, error: 'Network error' };
+    }
+  },
+
+  /**
+   * Set / update student credentials (email, username, password).
+   * @param {string} token
+   * @param {string} studentId
+   * @param {{ email?, username?, password?, regenerateUsername? }} payload
+   * @returns {{ success: boolean, data?: object, error?: string }}
+   */
+  setStudentCredentials: async (token, studentId, payload) => {
+    try {
+      const res = await fetch(`${API_BASE}/students/${studentId}/credentials`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) return { success: false, error: data.message };
+      return { success: true, data };
+    } catch {
+      return { success: false, error: 'Network error' };
+    }
+  },
+
   /** Clear any error message */
   clearError: () => set({ error: null }),
 }));
+
