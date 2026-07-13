@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useStudentStore } from "@/store/useStudentStore";
 import { useTaskStore } from "@/store/useTaskStore";
@@ -117,27 +117,27 @@ const StudentTaskCard = ({ student }) => {
         </div>
       </CardHeader>
 
-      <CardContent className="pt-4 flex-1 flex flex-col">
+       <CardContent className="pt-4 flex-1 flex flex-col">
         <div className="space-y-1 flex-1">
           <h4 className="text-sm font-semibold mb-3 text-foreground flex items-center justify-between">
-            Recent Completed Tasks
+            Recent Tasks
             <Badge
               variant="secondary"
               className="font-normal text-xs bg-muted text-muted-foreground border-transparent"
             >
-              {student.recentCompletedCount ?? 0}
+              {student.recentTasks?.length ?? 0}
             </Badge>
           </h4>
 
-          {student.recentCompleted && student.recentCompleted.length > 0 ? (
+          {student.recentTasks && student.recentTasks.length > 0 ? (
             <div className="space-y-2 bg-slate-50/80 dark:bg-slate-800/30 rounded-lg p-2">
-              {student.recentCompleted.map((task) => (
+              {student.recentTasks.map((task) => (
                 <TaskItem key={task._id} task={task} />
               ))}
             </div>
           ) : (
             <div className="text-sm text-slate-400 dark:text-slate-500 text-center py-6 italic border border-dashed border-slate-200 dark:border-slate-700 rounded-md bg-slate-50/50 dark:bg-slate-800/20">
-              No recent completed tasks.
+              No tasks assigned yet.
             </div>
           )}
         </div>
@@ -357,21 +357,46 @@ export default function TasksPage() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Fetch students on mount (all of them for this overview, up to 50)
+  const [recentTasksMap, setRecentTasksMap] = useState({}); // { [studentId]: Task[] }
+
+  // Fetch students on mount
   useEffect(() => {
-    if (token) {
-      fetchStudents(token, { page: 1, limit: 50 });
-    }
+    if (token) fetchStudents(token, { page: 1, limit: 50 });
   }, [token]);
 
-  // ── Enrich student list with recent completed tasks ───────────────────────
-  // The TasksPage shows a snapshot; for deep task management the user goes to StudentTasksPage.
-  // We add placeholder `recentCompleted` fields. (Full per-student task fetch happens on StudentTasksPage.)
-  const enrichedStudents = students.map((s) => ({
-    ...s,
-    recentCompleted: [],
-    recentCompletedCount: 0,
-  }));
+  // Once students are loaded, fetch the 3 most recent tasks for each in parallel
+  useEffect(() => {
+    if (!token || students.length === 0) return;
+
+    const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
+    const fetchAll = async () => {
+      const entries = await Promise.all(
+        students.map(async (s) => {
+          try {
+            const res = await fetch(`${API_BASE}/students/${s._id}/tasks`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (!res.ok) return [s._id, []];
+            const data = await res.json();
+            // Backend already returns tasks sorted by createdAt desc; take top 3
+            return [s._id, (data.tasks || []).slice(0, 3)];
+          } catch {
+            return [s._id, []];
+          }
+        })
+      );
+      setRecentTasksMap(Object.fromEntries(entries));
+    };
+
+    fetchAll();
+  }, [token, students]);
+
+  // Attach recentTasks to each student for the card
+  const enrichedStudents = useMemo(
+    () => students.map((s) => ({ ...s, recentTasks: recentTasksMap[s._id] ?? [] })),
+    [students, recentTasksMap]
+  );
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 ease-in-out">
