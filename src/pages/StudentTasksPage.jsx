@@ -15,7 +15,6 @@ import {
   Pencil,
   Trash2,
   Loader2,
-  CheckCheck,
   RefreshCw,
   ImagePlus,
   X,
@@ -37,13 +36,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -70,7 +62,7 @@ const formatDate = (dateStr) => {
 
 // ─── Task Item ────────────────────────────────────────────────────────────────
 
-const TaskItem = ({ task, onEdit, onDelete, onStatusToggle, isSubmitting }) => {
+const TaskItem = ({ task, onEdit, onDelete, isSubmitting }) => {
   const [expanded, setExpanded] = useState(false);
   const style = STATUS_STYLES[task.status] || STATUS_STYLES["Pending"];
 
@@ -85,10 +77,11 @@ const TaskItem = ({ task, onEdit, onDelete, onStatusToggle, isSubmitting }) => {
           <span className="group-hover:opacity-80 transition-opacity">{style.icon}</span>
           <div>
             <div
-              className={`font-medium text-base transition-colors ${task.status === "Completed"
-                ? "text-muted-foreground line-through"
-                : "text-foreground group-hover:text-accent-foreground"
-                }`}
+              className={`font-medium text-base transition-colors ${
+                task.status === "Completed"
+                  ? "text-muted-foreground line-through"
+                  : "text-foreground group-hover:text-accent-foreground"
+              }`}
             >
               {task.title}
             </div>
@@ -110,21 +103,6 @@ const TaskItem = ({ task, onEdit, onDelete, onStatusToggle, isSubmitting }) => {
           >
             {task.status}
           </Badge>
-
-          {/* Quick status cycle button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-10 w-10 p-0 text-muted-foreground group-hover:bg-white/20 group-hover:text-white transition-colors"
-            title="Cycle status"
-            disabled={isSubmitting}
-            onClick={(e) => {
-              e.stopPropagation();
-              onStatusToggle(task);
-            }}
-          >
-            <CheckCheck className="h-5 w-5" />
-          </Button>
 
           <Button
             variant="ghost"
@@ -189,7 +167,6 @@ const TaskItem = ({ task, onEdit, onDelete, onStatusToggle, isSubmitting }) => {
 const TaskFormModal = ({ open, onOpenChange, title, description, initialData, onSubmit, isSubmitting }) => {
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDesc, setTaskDesc] = useState("");
-  const [taskStatus, setTaskStatus] = useState("Pending");
   const [imageFile, setImageFile] = useState(null);       // File object
   const [imagePreview, setImagePreview] = useState("");   // local object URL for preview
   const fileInputRef = useRef(null);
@@ -198,7 +175,6 @@ const TaskFormModal = ({ open, onOpenChange, title, description, initialData, on
     if (open) {
       setTaskTitle(initialData?.title || "");
       setTaskDesc(initialData?.description || "");
-      setTaskStatus(initialData?.status || "Pending");
       setImageFile(null);
       setImagePreview("");
     }
@@ -222,7 +198,8 @@ const TaskFormModal = ({ open, onOpenChange, title, description, initialData, on
 
   const handleSubmit = () => {
     if (!taskTitle.trim()) return;
-    onSubmit({ title: taskTitle.trim(), description: taskDesc.trim(), status: taskStatus }, imageFile);
+    // Status is intentionally omitted — only the student can change task status
+    onSubmit({ title: taskTitle.trim(), description: taskDesc.trim() }, imageFile);
   };
 
   // Show existing image from DB when editing (if no new file picked)
@@ -265,23 +242,6 @@ const TaskFormModal = ({ open, onOpenChange, title, description, initialData, on
               onChange={(e) => setTaskDesc(e.target.value)}
               className="col-span-3 flex min-h-[90px] w-full rounded-md border border-border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
             />
-          </div>
-
-          {/* Status */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="task-status" className="text-right text-foreground text-sm">
-              Status
-            </Label>
-            <Select value={taskStatus} onValueChange={setTaskStatus}>
-              <SelectTrigger id="task-status" className="col-span-3 border-border bg-background text-foreground">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border text-popover-foreground">
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Image (optional) */}
@@ -400,10 +360,7 @@ const DeleteConfirmModal = ({ open, onOpenChange, task, onConfirm, isSubmitting 
   </Dialog>
 );
 
-// ─── Status cycle order ───────────────────────────────────────────────────────
-const STATUS_CYCLE = ["Pending", "In Progress", "Completed"];
-const nextStatus = (current) =>
-  STATUS_CYCLE[(STATUS_CYCLE.indexOf(current) + 1) % STATUS_CYCLE.length];
+// Status is read-only for the specialist — only the student can update it.
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
@@ -459,12 +416,7 @@ export function StudentTasksPage() {
     if (result.success) setDeleteTarget(null);
   }, [token, id, deleteTarget, deleteTask]);
 
-  const handleStatusToggle = useCallback(
-    async (task) => {
-      await updateTask(token, id, task._id, { status: nextStatus(task.status) });
-    },
-    [token, id, updateTask]
-  );
+
 
   // ── Derived ──────────────────────────────────────────────────────────────
 
@@ -587,7 +539,6 @@ export function StudentTasksPage() {
                   task={task}
                   onEdit={(t) => setEditTarget(t)}
                   onDelete={(t) => setDeleteTarget(t)}
-                  onStatusToggle={handleStatusToggle}
                   isSubmitting={isSubmitting}
                 />
               ))}
