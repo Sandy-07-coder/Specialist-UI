@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, NavLink } from "react-router-dom";
 import {
   ArrowLeft,
@@ -22,6 +22,15 @@ import {
   Users,
   Eye,
   EyeOff,
+  TrendingUp,
+  Smile,
+  Frown,
+  Meh,
+  Zap,
+  Heart,
+  Activity,
+  ListTodo,
+  CheckSquare,
 } from "lucide-react";
 import {
   Card,
@@ -90,6 +99,260 @@ function ProfileSkeleton() {
     </div>
   );
 }
+
+// ── Mood meta helpers ──────────────────────────────────────────────────────────
+const MOOD_META = {
+  happy:   { label: "Happy",   color: "#22c55e", bg: "rgba(34,197,94,0.13)",   Icon: Smile  },
+  sad:     { label: "Sad",     color: "#3b82f6", bg: "rgba(59,130,246,0.13)",  Icon: Frown  },
+  angry:   { label: "Angry",   color: "#ef4444", bg: "rgba(239,68,68,0.13)",   Icon: Zap    },
+  tired:   { label: "Tired",   color: "#a855f7", bg: "rgba(168,85,247,0.13)",  Icon: Meh    },
+  excited: { label: "Excited", color: "#f59e0b", bg: "rgba(245,158,11,0.13)",  Icon: Heart  },
+  calm:    { label: "Calm",    color: "#06b6d4", bg: "rgba(6,182,212,0.13)",   Icon: Activity },
+};
+const getMoodMeta = (mood) =>
+  MOOD_META[mood?.toLowerCase()] ?? {
+    label: mood ? (mood.charAt(0).toUpperCase() + mood.slice(1)) : "Unknown",
+    color: "#94a3b8",
+    bg: "rgba(148,163,184,0.12)",
+    Icon: Meh,
+  };
+
+// ── Circular SVG ring ──────────────────────────────────────────────────────────
+function ProgressRing({ pct = 0, size = 64, stroke = 6, color = "#6366f1" }) {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
+  return (
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none"
+        stroke="currentColor" className="text-muted/30" strokeWidth={stroke} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color}
+        strokeWidth={stroke} strokeLinecap="round"
+        strokeDasharray={circ} strokeDashoffset={offset}
+        style={{ transition: "stroke-dashoffset 0.7s ease" }} />
+    </svg>
+  );
+}
+
+// ── Live Student Progress Section ─────────────────────────────────────────────
+function StudentProgressSection({ studentId, token }) {
+  const [data,    setData]    = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error,   setError]   = useState("");
+
+  const load = useCallback(async () => {
+    if (!token || !studentId) return;
+    setLoading(true);
+    setError("");
+    try {
+      const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+      const res  = await fetch(`${base}/specialist/students/${studentId}/progress`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to load progress.");
+      setData(await res.json());
+    } catch (e) {
+      setError(e.message || "Error fetching progress.");
+    } finally {
+      setLoading(false);
+    }
+  }, [token, studentId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center gap-3 py-14 text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin" />
+        <span className="text-sm">Loading progress data…</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-10 text-muted-foreground">
+        <p className="text-sm text-red-500">{error}</p>
+        <Button variant="outline" size="sm" onClick={load} className="gap-2">
+          <RefreshCw className="h-3.5 w-3.5" /> Retry
+        </Button>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const {
+    totalTasks, completedTasks, pendingTasks, inProgressTasks,
+    completionRate, moodDistribution, moodTimeline, latestMood,
+  } = data;
+
+  const moodEntries  = Object.entries(moodDistribution).sort((a, b) => b[1] - a[1]);
+  const maxMoodCount = moodEntries[0]?.[1] || 1;
+  const latestMeta   = latestMood ? getMoodMeta(latestMood) : null;
+
+  return (
+    <div className="space-y-6">
+
+      {/* ── Stat row ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          { label: "Total Tasks",  value: totalTasks,     Icon: ListTodo,    color: "#f59e0b", bg: "rgba(245,158,11,0.12)"  },
+          { label: "Completed",    value: completedTasks,  Icon: CheckSquare, color: "#22c55e", bg: "rgba(34,197,94,0.12)"   },
+          { label: "In Progress",  value: inProgressTasks, Icon: Activity,    color: "#6366f1", bg: "rgba(99,102,241,0.12)"  },
+          { label: "Pending",      value: pendingTasks,    Icon: Clock,       color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
+        ].map(({ label, value, Icon, color, bg }) => (
+          <div key={label} className="flex flex-col items-center justify-center p-4 rounded-xl bg-muted/40 border border-border text-center gap-2">
+            <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: bg }}>
+              <Icon className="w-4 h-4" style={{ color }} />
+            </div>
+            <p className="text-xl font-bold text-foreground">{value}</p>
+            <p className="text-xs text-muted-foreground">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Completion ring + status bars ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+        {/* Ring */}
+        <div className="flex items-center gap-6 p-5 rounded-xl bg-muted/40 border border-border">
+          <div className="relative shrink-0">
+            <ProgressRing pct={completionRate} color="#6366f1" />
+            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-foreground" style={{ transform: "none" }}>
+              {completionRate}%
+            </span>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Task Completion</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {completedTasks} of {totalTasks} task{totalTasks !== 1 ? "s" : ""} completed
+            </p>
+            {latestMeta && (
+              <span
+                className="inline-flex items-center gap-1.5 mt-3 px-2.5 py-1 rounded-full text-xs font-medium"
+                style={{ background: latestMeta.bg, color: latestMeta.color }}
+              >
+                <latestMeta.Icon className="w-3 h-3" />
+                Latest mood: {latestMeta.label}
+              </span>
+            )}
+            {!latestMeta && (
+              <p className="text-xs text-muted-foreground mt-3 italic">No mood recorded yet</p>
+            )}
+          </div>
+        </div>
+
+        {/* Status bars */}
+        <div className="p-5 rounded-xl bg-muted/40 border border-border space-y-4">
+          <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Activity className="w-4 h-4 text-indigo-500" /> Status Breakdown
+          </p>
+          {[
+            { label: "Completed",   count: completedTasks,  color: "#22c55e" },
+            { label: "In Progress", count: inProgressTasks, color: "#6366f1" },
+            { label: "Pending",     count: pendingTasks,    color: "#94a3b8" },
+          ].map(({ label, count, color }) => {
+            const pct = totalTasks > 0 ? Math.round((count / totalTasks) * 100) : 0;
+            return (
+              <div key={label} className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-foreground font-medium">{label}</span>
+                  <span className="text-muted-foreground">{count} ({pct}%)</span>
+                </div>
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${pct}%`, background: color }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Mood distribution + Timeline ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+        {/* Mood distribution */}
+        <div className="p-5 rounded-xl bg-muted/40 border border-border">
+          <p className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
+            <Smile className="w-4 h-4 text-amber-500" /> Mood Distribution
+          </p>
+          {moodEntries.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground text-xs italic">
+              <Meh className="w-6 h-6 mb-2 opacity-40" /> No mood data yet
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {moodEntries.map(([mood, count]) => {
+                const meta = getMoodMeta(mood);
+                const pct  = Math.round((count / maxMoodCount) * 100);
+                return (
+                  <div key={mood} className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                      style={{ background: meta.bg }}>
+                      <meta.Icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-medium text-foreground capitalize">{meta.label}</span>
+                        <span className="text-muted-foreground">{count}</span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${pct}%`, background: meta.color }} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Mood timeline */}
+        <div className="p-5 rounded-xl bg-muted/40 border border-border">
+          <p className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
+            <TrendingUp className="w-4 h-4 text-primary" /> Mood History
+          </p>
+          {moodTimeline.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground text-xs italic">
+              <Frown className="w-6 h-6 mb-2 opacity-40" /> No mood events recorded
+            </div>
+          ) : (
+            <ul className="space-y-2.5 max-h-52 overflow-y-auto pr-1 scrollbar-thin">
+              {moodTimeline.map((item, i) => {
+                const meta = getMoodMeta(item.mood);
+                const d    = new Date(item.date);
+                const label = d.toLocaleDateString("en-GB", {
+                  day: "2-digit", month: "short", year: "numeric",
+                });
+                return (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                      style={{ background: meta.bg }}>
+                      <meta.Icon className="w-3 h-3" style={{ color: meta.color }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-foreground capitalize truncate">
+                        {meta.label}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate" title={item.taskTitle}>
+                        {item.taskTitle}
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground shrink-0">{label}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export function StudentDetailsPage() {
@@ -438,47 +701,20 @@ export function StudentDetailsPage() {
       {/* ── Bottom: Progress Overview ─────────────────────────────────────────── */}
       <Card className="border-border bg-card shadow-sm">
         <CardHeader className="border-b border-border pb-4">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <User className="w-4 h-4 text-muted-foreground" />
-            Progress Overview
-          </CardTitle>
-          <CardDescription>
-            Task completion and mood tracking — populated as activity is recorded
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Task Completion */}
-            <div className="p-4 rounded-xl bg-muted/50 border border-border">
-              <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">
-                Task Completion
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 bg-muted rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all"
-                    style={{ width: student.taskCompletion || "0%" }}
-                  />
-                </div>
-                <span className="text-sm font-semibold text-foreground shrink-0">
-                  {student.taskCompletion || "0%"}
-                </span>
-              </div>
-            </div>
-
-            {/* Mood */}
-            <div className="p-4 rounded-xl bg-muted/50 border border-border">
-              <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">
-                Last Recorded Mood
-              </p>
-              <p className="text-sm font-semibold text-foreground">
-                {student.mood
-                  ? student.mood
-                  : <span className="italic font-normal text-muted-foreground">Not recorded yet</span>
-                }
-              </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                Progress Overview
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Live task completion and mood history for this student
+              </CardDescription>
             </div>
           </div>
+        </CardHeader>
+        <CardContent className="pt-5">
+          <StudentProgressSection studentId={id} token={token} />
         </CardContent>
       </Card>
 

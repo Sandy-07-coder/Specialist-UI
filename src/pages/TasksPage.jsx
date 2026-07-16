@@ -22,6 +22,7 @@ import {
   CheckCircle2,
   Clock,
   ImagePlus,
+  Search,
   X,
 } from "lucide-react";
 import {
@@ -247,17 +248,36 @@ const AddTaskModal = ({ open, onOpenChange, students, token }) => {
           </div>
 
           {/* Title */}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="modal-title" className="text-right text-foreground text-sm">
+          <div className="grid grid-cols-4 items-start gap-4">
+            <Label htmlFor="modal-title" className="text-right text-foreground text-sm mt-2">
               Title
             </Label>
-            <Input
-              id="modal-title"
-              placeholder="e.g., Morning Routine"
-              value={taskTitle}
-              onChange={(e) => setTaskTitle(e.target.value)}
-              className="col-span-3 border-border bg-background text-foreground placeholder:text-muted-foreground"
-            />
+            <div className="col-span-3 space-y-2">
+              <Input
+                id="modal-title"
+                placeholder="e.g., Morning Routine"
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+                className="border-border bg-background text-foreground placeholder:text-muted-foreground"
+              />
+              {taskTitle.trim() && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    window.open(
+                      `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(taskTitle.trim())}`,
+                      "_blank",
+                      "noopener,noreferrer"
+                    )
+                  }
+                  className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 hover:underline transition-colors"
+                  title="Search Google Images for this title"
+                >
+                  <Search className="h-3.5 w-3.5" />
+                  Search Google Images for &ldquo;{taskTitle.trim()}&rdquo;
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Description */}
