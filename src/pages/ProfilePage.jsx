@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -16,21 +16,317 @@ import {
   Edit,
   Camera,
   Loader2,
-  User
+  User,
+  TrendingUp,
+  Smile,
+  Frown,
+  Meh,
+  Zap,
+  Heart,
+  RefreshCw,
+  BarChart2,
+  Activity,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { studentsData } from "@/data/students";
 import { useUserStore, useAuthStore } from "@/store";
 import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 
+// ─── Mood icon/colour mapping ─────────────────────────────────────────────────
+const MOOD_META = {
+  happy:    { label: "Happy",    color: "#22c55e", bg: "rgba(34,197,94,0.15)",    Icon: Smile },
+  sad:      { label: "Sad",      color: "#3b82f6", bg: "rgba(59,130,246,0.15)",   Icon: Frown },
+  angry:    { label: "Angry",    color: "#ef4444", bg: "rgba(239,68,68,0.15)",    Icon: Zap },
+  tired:    { label: "Tired",    color: "#a855f7", bg: "rgba(168,85,247,0.15)",   Icon: Meh },
+  excited:  { label: "Excited",  color: "#f59e0b", bg: "rgba(245,158,11,0.15)",  Icon: Heart },
+  calm:     { label: "Calm",     color: "#06b6d4", bg: "rgba(6,182,212,0.15)",    Icon: Activity },
+};
+const getMoodMeta = (mood) =>
+  MOOD_META[mood?.toLowerCase()] ?? {
+    label: mood ?? "Unknown",
+    color: "#94a3b8",
+    bg: "rgba(148,163,184,0.12)",
+    Icon: Meh,
+  };
+
+// ─── Circular progress ring (SVG) ─────────────────────────────────────────────
+function ProgressRing({ pct = 0, size = 52, stroke = 5, color = "#6366f1" }) {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
+  return (
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor"
+        className="text-muted/30" strokeWidth={stroke} />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color}
+        strokeWidth={stroke} strokeLinecap="round"
+        strokeDasharray={circ} strokeDashoffset={offset}
+        style={{ transition: "stroke-dashoffset 0.6s ease" }} />
+    </svg>
+  );
+}
+
+// ─── Progress Overview Card ───────────────────────────────────────────────────
+function ProgressOverviewSection({ token }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const fetchOverview = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+    setError("");
+    try {
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+      const res = await fetch(`${API_BASE}/specialist/progress-overview`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to load progress data.");
+      const json = await res.json();
+      setData(json);
+    } catch (e) {
+      setError(e.message || "Error fetching overview.");
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => { fetchOverview(); }, [fetchOverview]);
+
+  if (loading) {
+    return (
+      <Card className="border-border bg-card text-card-foreground shadow-sm">
+        <CardContent className="flex items-center justify-center gap-3 py-16 text-muted-foreground">
+          <Loader2 className="h-5 w-5 animate-spin" />
+          <span className="text-sm">Loading progress data…</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="border-border bg-card text-card-foreground shadow-sm">
+        <CardContent className="flex flex-col items-center justify-center gap-3 py-12 text-muted-foreground">
+          <p className="text-sm text-red-500">{error}</p>
+          <Button variant="outline" size="sm" onClick={fetchOverview} className="gap-2">
+            <RefreshCw className="h-3.5 w-3.5" /> Retry
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!data) return null;
+
+  const {
+    totalStudents,
+    totalTasks,
+    completedTasks,
+    pendingTasks,
+    inProgressTasks,
+    completionRate,
+    moodDistribution,
+    studentProgress,
+  } = data;
+
+  // Sort moods by count descending
+  const moodEntries = Object.entries(moodDistribution).sort((a, b) => b[1] - a[1]);
+  const maxMoodCount = moodEntries[0]?.[1] || 1;
+
+  return (
+    <div className="space-y-6">
+      {/* ── Section header ── */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold text-foreground">Progress Overview</h3>
+        </div>
+        <Button variant="ghost" size="sm" onClick={fetchOverview} className="gap-1.5 text-muted-foreground hover:text-foreground">
+          <RefreshCw className="h-3.5 w-3.5" /> Refresh
+        </Button>
+      </div>
+
+      {/* ── Top stat cards ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          { label: "Students", value: totalStudents, Icon: Users, color: "#3b82f6", bg: "rgba(59,130,246,0.12)" },
+          { label: "Total Tasks", value: totalTasks,  Icon: ListTodo, color: "#f59e0b", bg: "rgba(245,158,11,0.12)" },
+          { label: "Completed",  value: completedTasks, Icon: CheckSquare, color: "#22c55e", bg: "rgba(34,197,94,0.12)" },
+          { label: "Completion", value: `${completionRate}%`, Icon: BarChart2, color: "#6366f1", bg: "rgba(99,102,241,0.12)" },
+        ].map(({ label, value, Icon, color, bg }) => (
+          <Card key={label} className="border-border bg-card text-card-foreground shadow-sm">
+            <CardContent className="p-4 flex flex-col items-center justify-center text-center gap-2">
+              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: bg }}>
+                <Icon className="w-5 h-5" style={{ color }} />
+              </div>
+              <p className="text-2xl font-bold text-foreground">{value}</p>
+              <p className="text-xs text-muted-foreground">{label}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* ── Task status breakdown + Mood distribution ── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        {/* Task status breakdown */}
+        <Card className="border-border bg-card text-card-foreground shadow-sm">
+          <CardHeader className="pb-3 border-b border-border/60">
+            <CardTitle className="text-base flex items-center gap-2 text-foreground">
+              <Activity className="w-4 h-4 text-indigo-500" />
+              Task Status Breakdown
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-5 space-y-4">
+            {[
+              { label: "Completed",   count: completedTasks,  color: "#22c55e" },
+              { label: "In Progress", count: inProgressTasks, color: "#f59e0b" },
+              { label: "Pending",     count: pendingTasks,    color: "#94a3b8" },
+            ].map(({ label, count, color }) => {
+              const pct = totalTasks > 0 ? Math.round((count / totalTasks) * 100) : 0;
+              return (
+                <div key={label} className="space-y-1.5">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-foreground font-medium">{label}</span>
+                    <span className="text-muted-foreground">{count} <span className="text-xs">({pct}%)</span></span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-muted/50 overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${pct}%`, background: color }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+
+        {/* Mood distribution */}
+        <Card className="border-border bg-card text-card-foreground shadow-sm">
+          <CardHeader className="pb-3 border-b border-border/60">
+            <CardTitle className="text-base flex items-center gap-2 text-foreground">
+              <Smile className="w-4 h-4 text-amber-500" />
+              Mood History Distribution
+            </CardTitle>
+            <CardDescription className="text-xs">Based on mood-tagged tasks</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-5">
+            {moodEntries.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground text-sm italic border border-dashed border-border rounded-lg bg-muted/30">
+                <Meh className="w-7 h-7 mb-2 opacity-40" />
+                No mood data recorded yet.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {moodEntries.map(([mood, count]) => {
+                  const meta = getMoodMeta(mood);
+                  const pct = Math.round((count / maxMoodCount) * 100);
+                  return (
+                    <div key={mood} className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: meta.bg }}>
+                        <meta.Icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
+                      </div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex justify-between text-xs">
+                          <span className="font-medium text-foreground capitalize">{meta.label}</span>
+                          <span className="text-muted-foreground">{count}</span>
+                        </div>
+                        <div className="h-1.5 w-full rounded-full bg-muted/50 overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-700"
+                            style={{ width: `${pct}%`, background: meta.color }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── Per-student progress ── */}
+      <Card className="border-border bg-card text-card-foreground shadow-sm">
+        <CardHeader className="pb-3 border-b border-border/60">
+          <CardTitle className="text-base flex items-center gap-2 text-foreground">
+            <Users className="w-4 h-4 text-blue-500" />
+            Student Task Completion
+          </CardTitle>
+          <CardDescription className="text-xs">Individual progress for each student</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-4">
+          {studentProgress.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-muted-foreground text-sm italic border border-dashed border-border rounded-lg bg-muted/30">
+              <Users className="w-7 h-7 mb-2 opacity-40" />
+              No students found.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {studentProgress.map((s) => {
+                const moodMeta = s.latestMood ? getMoodMeta(s.latestMood) : null;
+                return (
+                  <div key={String(s._id)} className="flex items-center gap-4 group">
+                    {/* Ring */}
+                    <div className="relative flex-shrink-0">
+                      <ProgressRing pct={s.completionRate} color="#6366f1" />
+                      <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground">
+                        {s.completionRate}%
+                      </span>
+                    </div>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-semibold text-foreground truncate">{s.name}</span>
+                        {moodMeta && (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium"
+                            style={{ background: moodMeta.bg, color: moodMeta.color }}
+                          >
+                            <moodMeta.Icon className="w-2.5 h-2.5" />
+                            {moodMeta.label}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate mt-0.5">{s.diagnosis}</p>
+                      <div className="flex gap-3 mt-1.5 text-[10px] text-muted-foreground">
+                        <span><span className="text-green-500 font-semibold">{s.completed}</span> done</span>
+                        <span><span className="text-amber-500 font-semibold">{s.inProgress}</span> in progress</span>
+                        <span><span className="text-slate-400 font-semibold">{s.pending}</span> pending</span>
+                      </div>
+                    </div>
+                    {/* Mini bar */}
+                    <div className="hidden sm:block w-24 flex-shrink-0">
+                      <div className="h-1.5 w-full rounded-full bg-muted/50 overflow-hidden">
+                        <div
+                          className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${s.completionRate}%`, background: "#6366f1" }}
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-1 text-right">{s.total} task{s.total !== 1 ? "s" : ""}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ─── Main Profile Page ────────────────────────────────────────────────────────
 export function ProfilePage() {
   const { name } = useParams();
   const isPersonal = !name;
 
-  // ── Store ─────────────────────────────────────────────────────────────────
+  // ── Store ──────────────────────────────────────────────────────────────────
   const {
     isProfileLoaded,
     isLoading,
@@ -54,12 +350,11 @@ export function ProfilePage() {
   // ── Derived profile data ───────────────────────────────────────────────────
   const storeProfile = getDisplayProfile();
 
-  // For another specialist's page we still fall back to mock data
   const specialistName = isPersonal
     ? (storeProfile.name ?? "Specialist")
     : decodeURIComponent(name);
 
-  // Local edit state (mirrors store for personal profile; isolated for others)
+  // ── Local edit state ───────────────────────────────────────────────────────
   const [editForm, setEditForm] = useState({
     name: "",
     domain: "",
@@ -101,23 +396,7 @@ export function ProfilePage() {
     setIsUploading(false);
   };
 
-  // ── Statistics ────────────────────────────────────────────────────────────
-  const { assignedStudents, totalTasks, completedTasks } = useMemo(() => {
-    const studentsAssigned = studentsData.filter((s) =>
-      s.assigned_specialists.includes(specialistName)
-    );
-    let tTasks = 0;
-    let cTasks = 0;
-    studentsAssigned.forEach((student) => {
-      if (student.tasks && Array.isArray(student.tasks)) {
-        tTasks += student.tasks.length;
-        cTasks += student.tasks.filter((t) => t.status === "Completed").length;
-      }
-    });
-    return { assignedStudents: studentsAssigned.length, totalTasks: tTasks, completedTasks: cTasks };
-  }, [specialistName]);
-
-  // ── Loading state ─────────────────────────────────────────────────────────
+  // ── Loading state ──────────────────────────────────────────────────────────
   if (isPersonal && isLoading && !isProfileLoaded) {
     return (
       <div className="flex items-center justify-center h-64 text-muted-foreground gap-3">
@@ -128,7 +407,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500 max-w-4xl mx-auto">
+    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500 max-w-4xl mx-auto">
       <header>
         <h1 className="text-3xl font-semibold text-foreground tracking-tight">
           Specialist Portfolio
@@ -141,7 +420,7 @@ export function ProfilePage() {
       {/* ── Email verification warning (personal profile only) ── */}
       {isPersonal && <EmailVerificationBanner />}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Left Column - Essential Info */}
         <Card className="col-span-1 border-border bg-card text-card-foreground shadow-sm flex flex-col items-center p-6 text-center relative">
           {isPersonal && (
@@ -196,39 +475,7 @@ export function ProfilePage() {
 
         {/* Right Column - Domains & Assessments */}
         <div className="col-span-1 md:col-span-2 space-y-6">
-
-          {/* Key Statistics */}
-          <div className="grid grid-cols-3 gap-4">
-            <Card className="border-border bg-card text-card-foreground shadow-sm">
-              <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center mb-3">
-                  <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                </div>
-                <h3 className="text-2xl font-bold text-foreground">{assignedStudents}</h3>
-                <p className="text-xs text-muted-foreground mt-1">Assigned Students</p>
-              </CardContent>
-            </Card>
-            <Card className="border-border bg-card text-card-foreground shadow-sm">
-              <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center mb-3">
-                  <ListTodo className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-                </div>
-                <h3 className="text-2xl font-bold text-foreground">{totalTasks}</h3>
-                <p className="text-xs text-muted-foreground mt-1">Total Tasks</p>
-              </CardContent>
-            </Card>
-            <Card className="border-border bg-card text-card-foreground shadow-sm">
-              <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-                <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center mb-3">
-                  <CheckSquare className="w-5 h-5 text-green-600 dark:text-green-400" />
-                </div>
-                <h3 className="text-2xl font-bold text-foreground">{completedTasks}</h3>
-                <p className="text-xs text-muted-foreground mt-1">Completed Tasks</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Service Domains */}
+          {/* Focus Areas */}
           <Card className="border-border bg-card text-card-foreground shadow-sm">
             <CardHeader className="pb-3 border-b border-border/60 flex flex-row items-start justify-between space-y-0">
               <div className="space-y-1.5">
@@ -285,6 +532,10 @@ export function ProfilePage() {
           </Card>
         </div>
       </div>
+
+      {/* ── Progress Overview (live data) ── */}
+      <Separator />
+      <ProgressOverviewSection token={token} />
 
       {/* Edit Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
