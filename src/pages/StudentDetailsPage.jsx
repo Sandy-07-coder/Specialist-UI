@@ -22,6 +22,8 @@ import {
   Users,
   Eye,
   EyeOff,
+  TrendingUp,
+  SmilePlus,
 } from "lucide-react";
 import {
   Card,
@@ -88,6 +90,250 @@ function ProfileSkeleton() {
       <div className="h-40 rounded-xl bg-muted" />
       <div className="h-32 rounded-xl bg-muted" />
     </div>
+  );
+}
+
+// ── Mood config ────────────────────────────────────────────────────────────────
+const MOOD_META = {
+  happy: {
+    label: "Happy",
+    emoji: "😊",
+    color: "text-emerald-600 dark:text-emerald-400",
+    bg: "bg-emerald-100 dark:bg-emerald-900/30",
+    border: "border-emerald-300 dark:border-emerald-700",
+    dot: "bg-emerald-500",
+    icon: "mood",
+  },
+  sad: {
+    label: "Sad",
+    emoji: "😢",
+    color: "text-blue-600 dark:text-blue-400",
+    bg: "bg-blue-100 dark:bg-blue-900/30",
+    border: "border-blue-300 dark:border-blue-700",
+    dot: "bg-blue-500",
+    icon: "sentiment_dissatisfied",
+  },
+  angry: {
+    label: "Angry",
+    emoji: "😡",
+    color: "text-red-600 dark:text-red-400",
+    bg: "bg-red-100 dark:bg-red-900/30",
+    border: "border-red-300 dark:border-red-700",
+    dot: "bg-red-500",
+    icon: "mood_bad",
+  },
+  tired: {
+    label: "Tired",
+    emoji: "🥱",
+    color: "text-purple-600 dark:text-purple-400",
+    bg: "bg-purple-100 dark:bg-purple-900/30",
+    border: "border-purple-300 dark:border-purple-700",
+    dot: "bg-purple-500",
+    icon: "bedtime",
+  },
+};
+
+const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTH_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+function formatDayLabel(isoDate) {
+  const [y, m, d] = isoDate.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  return `${DAY_SHORT[date.getDay()]} ${d} ${MONTH_SHORT[m - 1]}`;
+}
+
+function isToday(isoDate) {
+  return new Date().toISOString().slice(0, 10) === isoDate;
+}
+
+// ── Mood History Card ──────────────────────────────────────────────────────────
+function MoodHistoryCard({ studentId, token }) {
+  const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selected, setSelected] = useState(null);
+
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/students/${studentId}/mood-history`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to load mood history.");
+      setHistory(data.history); // oldest → newest
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { load(); }, [studentId, token]);
+
+  // Compute most-frequent mood ("top vibe")
+  const topVibe = (() => {
+    const counts = {};
+    for (const e of history) if (e.mood) counts[e.mood] = (counts[e.mood] ?? 0) + 1;
+    if (!Object.keys(counts).length) return null;
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  })();
+
+  const moodDaysRecorded = history.filter((e) => e.mood).length;
+
+  return (
+    <Card className="border-border bg-card shadow-sm">
+      <CardHeader className="border-b border-border pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <TrendingUp className="w-4 h-4 text-muted-foreground" />
+            Mood History
+            <span className="ml-1 text-xs font-normal text-muted-foreground">— last 7 days</span>
+          </CardTitle>
+          <button
+            onClick={load}
+            disabled={loading}
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition disabled:opacity-40 px-2 py-1 rounded-lg hover:bg-accent"
+            title="Refresh"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+        </div>
+        <CardDescription>One entry per day — the student's most recent mood check-in</CardDescription>
+      </CardHeader>
+
+      <CardContent className="pt-5 space-y-5">
+        {/* Error */}
+        {error && (
+          <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-2.5 text-sm flex items-center justify-between">
+            {error}
+            <button onClick={load} className="underline font-semibold ml-4">Retry</button>
+          </div>
+        )}
+
+        {/* Summary strip */}
+        {!loading && !error && (
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/60 border border-border text-sm">
+              <SmilePlus className="w-4 h-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Days recorded:</span>
+              <span className="font-bold text-foreground">{moodDaysRecorded} / 7</span>
+            </div>
+            {topVibe && MOOD_META[topVibe] && (
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border ${MOOD_META[topVibe].bg} ${MOOD_META[topVibe].border} ${MOOD_META[topVibe].color}`}>
+                <span>{MOOD_META[topVibe].emoji}</span>
+                Top mood: {MOOD_META[topVibe].label}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Timeline */}
+        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+          {loading
+            ? Array.from({ length: 7 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center gap-2">
+                  <div className="w-full aspect-square rounded-xl bg-muted animate-pulse" />
+                  <div className="h-2.5 w-8 rounded bg-muted animate-pulse" />
+                </div>
+              ))
+            : history.map((entry, idx) => {
+                const meta = entry.mood ? MOOD_META[entry.mood] : null;
+                const today = isToday(entry.date);
+                const isSelected = selected?.date === entry.date;
+                const [, , d] = entry.date.split("-");
+                const [y, m] = entry.date.split("-").map(Number);
+                const dayName = DAY_SHORT[new Date(y, m - 1, Number(d)).getDay()];
+
+                return (
+                  <div key={entry.date} className="flex flex-col items-center gap-1.5">
+                    <button
+                      onClick={() => setSelected(isSelected ? null : entry)}
+                      title={`${formatDayLabel(entry.date)}: ${meta?.label ?? "No mood recorded"}`}
+                      className={`
+                        relative w-full aspect-square rounded-xl flex flex-col items-center justify-center gap-0.5
+                        border-2 transition-all hover:scale-105 active:scale-95
+                        ${meta ? `${meta.bg} ${meta.border}` : "bg-muted/40 border-border"}
+                        ${isSelected ? "ring-2 ring-primary ring-offset-2" : ""}
+                        ${today ? "shadow-md" : ""}
+                      `}
+                    >
+                      {today && (
+                        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[9px] font-black bg-primary text-primary-foreground px-1.5 rounded-full whitespace-nowrap">
+                          Today
+                        </span>
+                      )}
+                      <span className={`text-xl sm:text-2xl select-none ${meta ? "" : "opacity-30"}`}>
+                        {meta ? meta.emoji : "—"}
+                      </span>
+                    </button>
+                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
+                      {dayName}
+                    </span>
+                    <span className="text-[9px] text-muted-foreground">{d}</span>
+                  </div>
+                );
+              })}
+        </div>
+
+        {/* Selected day detail */}
+        {selected && (
+          <div
+            className={`rounded-xl border p-4 flex items-center gap-4 transition-all ${
+              selected.mood && MOOD_META[selected.mood]
+                ? `${MOOD_META[selected.mood].bg} ${MOOD_META[selected.mood].border}`
+                : "bg-muted/50 border-border"
+            }`}
+          >
+            <div className="text-4xl">{selected.mood ? MOOD_META[selected.mood]?.emoji : "❓"}</div>
+            <div className="flex-1">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
+                {formatDayLabel(selected.date)}{isToday(selected.date) ? " · Today" : ""}
+              </p>
+              <p className={`text-lg font-bold mt-0.5 ${
+                selected.mood && MOOD_META[selected.mood]
+                  ? MOOD_META[selected.mood].color
+                  : "text-muted-foreground"
+              }`}>
+                {selected.mood ? MOOD_META[selected.mood]?.label : "No mood recorded"}
+              </p>
+              {selected.createdAt && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Logged at {new Date(selected.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => setSelected(null)}
+              className="text-muted-foreground hover:text-foreground transition text-lg"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* Legend */}
+        {!loading && !error && (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {Object.entries(MOOD_META).map(([key, m]) => (
+              <div
+                key={key}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${m.bg} ${m.border} ${m.color}`}
+              >
+                <span>{m.emoji}</span> {m.label}
+              </div>
+            ))}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-muted/40 border border-border text-muted-foreground">
+              — Not recorded
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -435,7 +681,7 @@ export function StudentDetailsPage() {
         </div>
       </div>
 
-      {/* ── Bottom: Progress Overview ─────────────────────────────────────────── */}
+      {/* ── Progress Overview ─────────────────────────────────────────────────── */}
       <Card className="border-border bg-card shadow-sm">
         <CardHeader className="border-b border-border pb-4">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -447,40 +693,28 @@ export function StudentDetailsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* Task Completion */}
-            <div className="p-4 rounded-xl bg-muted/50 border border-border">
-              <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">
-                Task Completion
-              </p>
-              <div className="flex items-center gap-3">
-                <div className="flex-1 bg-muted rounded-full h-2">
-                  <div
-                    className="bg-primary h-2 rounded-full transition-all"
-                    style={{ width: student.taskCompletion || "0%" }}
-                  />
-                </div>
-                <span className="text-sm font-semibold text-foreground shrink-0">
-                  {student.taskCompletion || "0%"}
-                </span>
+          {/* Task Completion only */}
+          <div className="p-4 rounded-xl bg-muted/50 border border-border max-w-sm">
+            <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">
+              Task Completion
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 bg-muted rounded-full h-2">
+                <div
+                  className="bg-primary h-2 rounded-full transition-all"
+                  style={{ width: student.taskCompletion || "0%" }}
+                />
               </div>
-            </div>
-
-            {/* Mood */}
-            <div className="p-4 rounded-xl bg-muted/50 border border-border">
-              <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">
-                Last Recorded Mood
-              </p>
-              <p className="text-sm font-semibold text-foreground">
-                {student.mood
-                  ? student.mood
-                  : <span className="italic font-normal text-muted-foreground">Not recorded yet</span>
-                }
-              </p>
+              <span className="text-sm font-semibold text-foreground shrink-0">
+                {student.taskCompletion || "0%"}
+              </span>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* ── Mood History ──────────────────────────────────────────────────────── */}
+      <MoodHistoryCard studentId={id} token={token} />
 
       {/* ── Account Setup / Credentials ──────────────────────────────────────── */}
       <Card className="border-border bg-card shadow-sm">
