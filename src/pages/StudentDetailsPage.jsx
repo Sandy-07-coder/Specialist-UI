@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, NavLink } from "react-router-dom";
 import {
   ArrowLeft,
@@ -23,7 +23,14 @@ import {
   Eye,
   EyeOff,
   TrendingUp,
-  SmilePlus,
+  Smile,
+  Frown,
+  Meh,
+  Zap,
+  Heart,
+  Activity,
+  ListTodo,
+  CheckSquare,
 } from "lucide-react";
 import {
   Card,
@@ -93,249 +100,259 @@ function ProfileSkeleton() {
   );
 }
 
-// ── Mood config ────────────────────────────────────────────────────────────────
+// ── Mood meta helpers ──────────────────────────────────────────────────────────
 const MOOD_META = {
-  happy: {
-    label: "Happy",
-    emoji: "😊",
-    color: "text-emerald-600 dark:text-emerald-400",
-    bg: "bg-emerald-100 dark:bg-emerald-900/30",
-    border: "border-emerald-300 dark:border-emerald-700",
-    dot: "bg-emerald-500",
-    icon: "mood",
-  },
-  sad: {
-    label: "Sad",
-    emoji: "😢",
-    color: "text-blue-600 dark:text-blue-400",
-    bg: "bg-blue-100 dark:bg-blue-900/30",
-    border: "border-blue-300 dark:border-blue-700",
-    dot: "bg-blue-500",
-    icon: "sentiment_dissatisfied",
-  },
-  angry: {
-    label: "Angry",
-    emoji: "😡",
-    color: "text-red-600 dark:text-red-400",
-    bg: "bg-red-100 dark:bg-red-900/30",
-    border: "border-red-300 dark:border-red-700",
-    dot: "bg-red-500",
-    icon: "mood_bad",
-  },
-  tired: {
-    label: "Tired",
-    emoji: "🥱",
-    color: "text-purple-600 dark:text-purple-400",
-    bg: "bg-purple-100 dark:bg-purple-900/30",
-    border: "border-purple-300 dark:border-purple-700",
-    dot: "bg-purple-500",
-    icon: "bedtime",
-  },
+  happy:   { label: "Happy",   color: "#22c55e", bg: "rgba(34,197,94,0.13)",   Icon: Smile  },
+  sad:     { label: "Sad",     color: "#3b82f6", bg: "rgba(59,130,246,0.13)",  Icon: Frown  },
+  angry:   { label: "Angry",   color: "#ef4444", bg: "rgba(239,68,68,0.13)",   Icon: Zap    },
+  tired:   { label: "Tired",   color: "#a855f7", bg: "rgba(168,85,247,0.13)",  Icon: Meh    },
+  excited: { label: "Excited", color: "#f59e0b", bg: "rgba(245,158,11,0.13)",  Icon: Heart  },
+  calm:    { label: "Calm",    color: "#06b6d4", bg: "rgba(6,182,212,0.13)",   Icon: Activity },
 };
+const getMoodMeta = (mood) =>
+  MOOD_META[mood?.toLowerCase()] ?? {
+    label: mood ? (mood.charAt(0).toUpperCase() + mood.slice(1)) : "Unknown",
+    color: "#94a3b8",
+    bg: "rgba(148,163,184,0.12)",
+    Icon: Meh,
+  };
 
-const DAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTH_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-function formatDayLabel(isoDate) {
-  const [y, m, d] = isoDate.split("-").map(Number);
-  const date = new Date(y, m - 1, d);
-  return `${DAY_SHORT[date.getDay()]} ${d} ${MONTH_SHORT[m - 1]}`;
+// ── Circular SVG ring ──────────────────────────────────────────────────────────
+function ProgressRing({ pct = 0, size = 64, stroke = 6, color = "#6366f1" }) {
+  const r = (size - stroke) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (pct / 100) * circ;
+  return (
+    <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none"
+        stroke="currentColor" className="text-muted/30" strokeWidth={stroke} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color}
+        strokeWidth={stroke} strokeLinecap="round"
+        strokeDasharray={circ} strokeDashoffset={offset}
+        style={{ transition: "stroke-dashoffset 0.7s ease" }} />
+    </svg>
+  );
 }
 
-function isToday(isoDate) {
-  return new Date().toISOString().slice(0, 10) === isoDate;
-}
-
-// ── Mood History Card ──────────────────────────────────────────────────────────
-function MoodHistoryCard({ studentId, token }) {
-  const [history, setHistory] = useState([]);
+// ── Live Student Progress Section ─────────────────────────────────────────────
+function StudentProgressSection({ studentId, token }) {
+  const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selected, setSelected] = useState(null);
+  const [error,   setError]   = useState("");
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
-
-  const load = async () => {
+  const load = useCallback(async () => {
+    if (!token || !studentId) return;
     setLoading(true);
-    setError(null);
+    setError("");
     try {
-      const res = await fetch(`${API_BASE}/students/${studentId}/mood-history`, {
+      const base = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+      const res  = await fetch(`${base}/specialist/students/${studentId}/progress`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Failed to load mood history.");
-      setHistory(data.history); // oldest → newest
+      if (!res.ok) throw new Error("Failed to load progress.");
+      setData(await res.json());
     } catch (e) {
-      setError(e.message);
+      setError(e.message || "Error fetching progress.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, studentId]);
 
-  useEffect(() => { load(); }, [studentId, token]);
+  useEffect(() => { load(); }, [load]);
 
-  // Compute most-frequent mood ("top vibe")
-  const topVibe = (() => {
-    const counts = {};
-    for (const e of history) if (e.mood) counts[e.mood] = (counts[e.mood] ?? 0) + 1;
-    if (!Object.keys(counts).length) return null;
-    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-  })();
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center gap-3 py-14 text-muted-foreground">
+        <Loader2 className="h-5 w-5 animate-spin" />
+        <span className="text-sm">Loading progress data…</span>
+      </div>
+    );
+  }
 
-  const moodDaysRecorded = history.filter((e) => e.mood).length;
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 py-10 text-muted-foreground">
+        <p className="text-sm text-red-500">{error}</p>
+        <Button variant="outline" size="sm" onClick={load} className="gap-2">
+          <RefreshCw className="h-3.5 w-3.5" /> Retry
+        </Button>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const {
+    totalTasks, completedTasks, pendingTasks, inProgressTasks,
+    completionRate, moodDistribution, moodTimeline, latestMood,
+  } = data;
+
+  const moodEntries  = Object.entries(moodDistribution).sort((a, b) => b[1] - a[1]);
+  const maxMoodCount = moodEntries[0]?.[1] || 1;
+  const latestMeta   = latestMood ? getMoodMeta(latestMood) : null;
 
   return (
-    <Card className="border-border bg-card shadow-sm">
-      <CardHeader className="border-b border-border pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <TrendingUp className="w-4 h-4 text-muted-foreground" />
-            Mood History
-            <span className="ml-1 text-xs font-normal text-muted-foreground">— last 7 days</span>
-          </CardTitle>
-          <button
-            onClick={load}
-            disabled={loading}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition disabled:opacity-40 px-2 py-1 rounded-lg hover:bg-accent"
-            title="Refresh"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
-        </div>
-        <CardDescription>One entry per day — the student's most recent mood check-in</CardDescription>
-      </CardHeader>
+    <div className="space-y-6">
 
-      <CardContent className="pt-5 space-y-5">
-        {/* Error */}
-        {error && (
-          <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-2.5 text-sm flex items-center justify-between">
-            {error}
-            <button onClick={load} className="underline font-semibold ml-4">Retry</button>
-          </div>
-        )}
-
-        {/* Summary strip */}
-        {!loading && !error && (
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/60 border border-border text-sm">
-              <SmilePlus className="w-4 h-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Days recorded:</span>
-              <span className="font-bold text-foreground">{moodDaysRecorded} / 7</span>
+      {/* ── Stat row ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {[
+          { label: "Total Tasks",  value: totalTasks,     Icon: ListTodo,    color: "#f59e0b", bg: "rgba(245,158,11,0.12)"  },
+          { label: "Completed",    value: completedTasks,  Icon: CheckSquare, color: "#22c55e", bg: "rgba(34,197,94,0.12)"   },
+          { label: "In Progress",  value: inProgressTasks, Icon: Activity,    color: "#6366f1", bg: "rgba(99,102,241,0.12)"  },
+          { label: "Pending",      value: pendingTasks,    Icon: Clock,       color: "#94a3b8", bg: "rgba(148,163,184,0.12)" },
+        ].map(({ label, value, Icon, color, bg }) => (
+          <div key={label} className="flex flex-col items-center justify-center p-4 rounded-xl bg-muted/40 border border-border text-center gap-2">
+            <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: bg }}>
+              <Icon className="w-4 h-4" style={{ color }} />
             </div>
-            {topVibe && MOOD_META[topVibe] && (
-              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold border ${MOOD_META[topVibe].bg} ${MOOD_META[topVibe].border} ${MOOD_META[topVibe].color}`}>
-                <span>{MOOD_META[topVibe].emoji}</span>
-                Top mood: {MOOD_META[topVibe].label}
-              </div>
+            <p className="text-xl font-bold text-foreground">{value}</p>
+            <p className="text-xs text-muted-foreground">{label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Completion ring + status bars ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+        {/* Ring */}
+        <div className="flex items-center gap-6 p-5 rounded-xl bg-muted/40 border border-border">
+          <div className="relative shrink-0">
+            <ProgressRing pct={completionRate} color="#6366f1" />
+            <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-foreground" style={{ transform: "none" }}>
+              {completionRate}%
+            </span>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground">Task Completion</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {completedTasks} of {totalTasks} task{totalTasks !== 1 ? "s" : ""} completed
+            </p>
+            {latestMeta && (
+              <span
+                className="inline-flex items-center gap-1.5 mt-3 px-2.5 py-1 rounded-full text-xs font-medium"
+                style={{ background: latestMeta.bg, color: latestMeta.color }}
+              >
+                <latestMeta.Icon className="w-3 h-3" />
+                Latest mood: {latestMeta.label}
+              </span>
+            )}
+            {!latestMeta && (
+              <p className="text-xs text-muted-foreground mt-3 italic">No mood recorded yet</p>
             )}
           </div>
-        )}
+        </div>
 
-        {/* Timeline */}
-        <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
-          {loading
-            ? Array.from({ length: 7 }).map((_, i) => (
-                <div key={i} className="flex flex-col items-center gap-2">
-                  <div className="w-full aspect-square rounded-xl bg-muted animate-pulse" />
-                  <div className="h-2.5 w-8 rounded bg-muted animate-pulse" />
+        {/* Status bars */}
+        <div className="p-5 rounded-xl bg-muted/40 border border-border space-y-4">
+          <p className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <Activity className="w-4 h-4 text-indigo-500" /> Status Breakdown
+          </p>
+          {[
+            { label: "Completed",   count: completedTasks,  color: "#22c55e" },
+            { label: "In Progress", count: inProgressTasks, color: "#6366f1" },
+            { label: "Pending",     count: pendingTasks,    color: "#94a3b8" },
+          ].map(({ label, count, color }) => {
+            const pct = totalTasks > 0 ? Math.round((count / totalTasks) * 100) : 0;
+            return (
+              <div key={label} className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span className="text-foreground font-medium">{label}</span>
+                  <span className="text-muted-foreground">{count} ({pct}%)</span>
                 </div>
-              ))
-            : history.map((entry, idx) => {
-                const meta = entry.mood ? MOOD_META[entry.mood] : null;
-                const today = isToday(entry.date);
-                const isSelected = selected?.date === entry.date;
-                const [, , d] = entry.date.split("-");
-                const [y, m] = entry.date.split("-").map(Number);
-                const dayName = DAY_SHORT[new Date(y, m - 1, Number(d)).getDay()];
+                <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                  <div className="h-full rounded-full transition-all duration-700"
+                    style={{ width: `${pct}%`, background: color }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
+      {/* ── Mood distribution + Timeline ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+
+        {/* Mood distribution */}
+        <div className="p-5 rounded-xl bg-muted/40 border border-border">
+          <p className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
+            <Smile className="w-4 h-4 text-amber-500" /> Mood Distribution
+          </p>
+          {moodEntries.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground text-xs italic">
+              <Meh className="w-6 h-6 mb-2 opacity-40" /> No mood data yet
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {moodEntries.map(([mood, count]) => {
+                const meta = getMoodMeta(mood);
+                const pct  = Math.round((count / maxMoodCount) * 100);
                 return (
-                  <div key={entry.date} className="flex flex-col items-center gap-1.5">
-                    <button
-                      onClick={() => setSelected(isSelected ? null : entry)}
-                      title={`${formatDayLabel(entry.date)}: ${meta?.label ?? "No mood recorded"}`}
-                      className={`
-                        relative w-full aspect-square rounded-xl flex flex-col items-center justify-center gap-0.5
-                        border-2 transition-all hover:scale-105 active:scale-95
-                        ${meta ? `${meta.bg} ${meta.border}` : "bg-muted/40 border-border"}
-                        ${isSelected ? "ring-2 ring-primary ring-offset-2" : ""}
-                        ${today ? "shadow-md" : ""}
-                      `}
-                    >
-                      {today && (
-                        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 text-[9px] font-black bg-primary text-primary-foreground px-1.5 rounded-full whitespace-nowrap">
-                          Today
-                        </span>
-                      )}
-                      <span className={`text-xl sm:text-2xl select-none ${meta ? "" : "opacity-30"}`}>
-                        {meta ? meta.emoji : "—"}
-                      </span>
-                    </button>
-                    <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">
-                      {dayName}
-                    </span>
-                    <span className="text-[9px] text-muted-foreground">{d}</span>
+                  <div key={mood} className="flex items-center gap-3">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0"
+                      style={{ background: meta.bg }}>
+                      <meta.Icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-medium text-foreground capitalize">{meta.label}</span>
+                        <span className="text-muted-foreground">{count}</span>
+                      </div>
+                      <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                        <div className="h-full rounded-full transition-all duration-700"
+                          style={{ width: `${pct}%`, background: meta.color }} />
+                      </div>
+                    </div>
                   </div>
                 );
               })}
+            </div>
+          )}
         </div>
 
-        {/* Selected day detail */}
-        {selected && (
-          <div
-            className={`rounded-xl border p-4 flex items-center gap-4 transition-all ${
-              selected.mood && MOOD_META[selected.mood]
-                ? `${MOOD_META[selected.mood].bg} ${MOOD_META[selected.mood].border}`
-                : "bg-muted/50 border-border"
-            }`}
-          >
-            <div className="text-4xl">{selected.mood ? MOOD_META[selected.mood]?.emoji : "❓"}</div>
-            <div className="flex-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-                {formatDayLabel(selected.date)}{isToday(selected.date) ? " · Today" : ""}
-              </p>
-              <p className={`text-lg font-bold mt-0.5 ${
-                selected.mood && MOOD_META[selected.mood]
-                  ? MOOD_META[selected.mood].color
-                  : "text-muted-foreground"
-              }`}>
-                {selected.mood ? MOOD_META[selected.mood]?.label : "No mood recorded"}
-              </p>
-              {selected.createdAt && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Logged at {new Date(selected.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                </p>
-              )}
+        {/* Mood timeline */}
+        <div className="p-5 rounded-xl bg-muted/40 border border-border">
+          <p className="text-sm font-semibold text-foreground flex items-center gap-2 mb-4">
+            <TrendingUp className="w-4 h-4 text-primary" /> Mood History
+          </p>
+          {moodTimeline.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground text-xs italic">
+              <Frown className="w-6 h-6 mb-2 opacity-40" /> No mood events recorded
             </div>
-            <button
-              onClick={() => setSelected(null)}
-              className="text-muted-foreground hover:text-foreground transition text-lg"
-            >
-              ×
-            </button>
-          </div>
-        )}
-
-        {/* Legend */}
-        {!loading && !error && (
-          <div className="flex flex-wrap gap-2 pt-1">
-            {Object.entries(MOOD_META).map(([key, m]) => (
-              <div
-                key={key}
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${m.bg} ${m.border} ${m.color}`}
-              >
-                <span>{m.emoji}</span> {m.label}
-              </div>
-            ))}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-muted/40 border border-border text-muted-foreground">
-              — Not recorded
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          ) : (
+            <ul className="space-y-2.5 max-h-52 overflow-y-auto pr-1 scrollbar-thin">
+              {moodTimeline.map((item, i) => {
+                const meta = getMoodMeta(item.mood);
+                const d    = new Date(item.date);
+                const label = d.toLocaleDateString("en-GB", {
+                  day: "2-digit", month: "short", year: "numeric",
+                });
+                return (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0"
+                      style={{ background: meta.bg }}>
+                      <meta.Icon className="w-3 h-3" style={{ color: meta.color }} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-foreground capitalize truncate">
+                        {meta.label}
+                      </p>
+                      <p className="text-[10px] text-muted-foreground truncate" title={item.taskTitle}>
+                        {item.taskTitle}
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground shrink-0">{label}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
+
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export function StudentDetailsPage() {
@@ -684,32 +701,20 @@ export function StudentDetailsPage() {
       {/* ── Progress Overview ─────────────────────────────────────────────────── */}
       <Card className="border-border bg-card shadow-sm">
         <CardHeader className="border-b border-border pb-4">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <User className="w-4 h-4 text-muted-foreground" />
-            Progress Overview
-          </CardTitle>
-          <CardDescription>
-            Task completion and mood tracking — populated as activity is recorded
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-5">
-          {/* Task Completion only */}
-          <div className="p-4 rounded-xl bg-muted/50 border border-border max-w-sm">
-            <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">
-              Task Completion
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="flex-1 bg-muted rounded-full h-2">
-                <div
-                  className="bg-primary h-2 rounded-full transition-all"
-                  style={{ width: student.taskCompletion || "0%" }}
-                />
-              </div>
-              <span className="text-sm font-semibold text-foreground shrink-0">
-                {student.taskCompletion || "0%"}
-              </span>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                Progress Overview
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Live task completion and mood history for this student
+              </CardDescription>
             </div>
           </div>
+        </CardHeader>
+        <CardContent className="pt-5">
+          <StudentProgressSection studentId={id} token={token} />
         </CardContent>
       </Card>
 
