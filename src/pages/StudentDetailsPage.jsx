@@ -698,7 +698,7 @@ export function StudentDetailsPage() {
         </div>
       </div>
 
-      {/* ── Progress Overview ─────────────────────────────────────────────────── */}
+      {/* ── Bottom: Progress Overview ─────────────────────────────────────────── */}
       <Card className="border-border bg-card shadow-sm">
         <CardHeader className="border-b border-border pb-4">
           <div className="flex items-center justify-between">
@@ -717,9 +717,6 @@ export function StudentDetailsPage() {
           <StudentProgressSection studentId={id} token={token} />
         </CardContent>
       </Card>
-
-      {/* ── Mood History ──────────────────────────────────────────────────────── */}
-      <MoodHistoryCard studentId={id} token={token} />
 
       {/* ── Account Setup / Credentials ──────────────────────────────────────── */}
       <Card className="border-border bg-card shadow-sm">
